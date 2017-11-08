@@ -1,0 +1,59 @@
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.autograd import Variable
+from torch.nn.utils.rnn import pack_padded_sequence
+
+
+def to_var(x):
+    if torch.cuda.is_available():
+        x = x.cuda()
+    return Variable(x)
+
+
+#  TODO : Add Covariance Matrix
+#  TODO : Replace nn.Embedding with word2vec
+class EncoderRNN(nn.Module):
+    def __init__(self, vocab_size, embed_size, hidden_size, num_gaussians=1, num_layers=1):
+        super(EncoderRNN, self).__init__()
+        self.num_gaussians = num_gaussians
+        self.embed = nn.Embedding(vocab_size, embed_size)  # replace this with word2vec
+        self.rnn = nn.RNN(input_size=embed_size, hidden_size=hidden_size, num_layers=num_layers, batch_first=True)
+        self.fc = nn.Linear(hidden_size, 2 * num_gaussians)
+        self.init_weights()
+
+    def init_weights(self):
+        self.embed.weight.data.uniform_(-0.1, 0.1)
+        self.fc.weight.data.uniform_(-0.1, 0.1)
+        self.fc.bias.data.fill_(0)
+
+    def _reparametrize(self, mu, log_var):
+        eps = to_var(torch.randn(mu.size(0), mu.size(1)))
+        z = mu + eps * torch.exp(log_var / 2)
+        return z
+
+    def forward(self, captions, lengths, sample=True):
+        embeddings = self.embed(captions)
+        packed = pack_padded_sequence(embeddings, lengths, batch_first=True)  # not 100% sure about this
+        hiddens, out = self.rnn(packed)
+        mu, log_var = torch.chunk(self.fc(out[0]), 2, dim=-1)
+        return self._reparametrize(mu, log_var), mu[0], log_var[0]
+
+
+#  TODO: Add Deconvolutions (replace fully connected (fc) layers
+class DecoderCNN(nn.Module):
+    def __init__(self, input_size, output_size):
+        super(DecoderCNN, self).__init__()
+        self.fc1 = nn.Linear(input_size, 256)
+        self.fc2 = nn.Linear(256, output_size)
+
+    def init_weights(self):
+        self.fc1.weight.data.uniform_(-0.1, 0.1)
+        self.fc1.bias.data.fill_(0)
+        self.fc2.weight.data.uniform_(-0.1, 0.1)
+        self.fc2.bias.data.fill_(0)
+
+    def forward(self, x):
+        o = F.relu(self.fc1(x))
+        o = self.fc2(o)
+        return o
