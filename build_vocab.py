@@ -36,8 +36,8 @@ def build_vocab(json, threshold):
         tokens = nltk.tokenize.word_tokenize(caption.lower())
         counter.update(tokens)
 
-        if i % 1000 == 0:
-            print("[%d/%d] Tokenized the captions." %(i, len(ids)))
+        if i % 10000 == 0:
+            print("[%d/%d] Tokenized the captions." % (i, len(ids)))
 
     # If the word frequency is less than 'threshold', then the word is discarded.
     words = [word for word, cnt in counter.items() if cnt >= threshold]
@@ -61,8 +61,8 @@ def main(args):
     vocab_path = args.vocab_path
     with open(vocab_path, 'wb') as f:
         pickle.dump(vocab, f)
-    print("Total vocabulary size: %d" %len(vocab))
-    print("Saved the vocabulary wrapper to '%s'" %vocab_path)
+    print("Total vocabulary size: %d" % len(vocab))
+    print("Saved the vocabulary wrapper to '%s'" % vocab_path)
 
 
 if __name__ == '__main__':
@@ -76,3 +76,4 @@ if __name__ == '__main__':
                         help='minimum word count threshold')
     args = parser.parse_args()
     main(args)
+

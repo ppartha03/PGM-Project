@@ -19,9 +19,9 @@ def resize_images(image_dir, output_dir, size):
             with Image.open(f) as img:
                 img = resize_image(img, size)
                 img.save(os.path.join(output_dir, image), img.format)
-        if i % 100 == 0:
-            print ("[%d/%d] Resized the images and saved into '%s'."
-                   %(i, num_images, output_dir))
+        if i % 1000 == 0:
+            print("[%d/%d] Resized the images and saved into '%s'."
+                   % (i, num_images, output_dir))
 
 def main(args):
     image_dir = args.image_dir
@@ -40,3 +40,4 @@ if __name__ == '__main__':
                         help='size for image after processing')
     args = parser.parse_args()
     main(args)
+
