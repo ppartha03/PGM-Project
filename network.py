@@ -14,12 +14,20 @@ def to_var(x):
 #  TODO : Add Covariance Matrix
 #  TODO : Replace nn.Embedding with word2vec
 class EncoderRNN(nn.Module):
-    def __init__(self, vocab_size, embed_size, hidden_size, num_gaussians=1, num_layers=1):
+    def __init__(self, vocab_size, embed_size, hidden_size, gaussian_dim, num_gaussians=1, num_layers=1):
+        """
+        """
         super(EncoderRNN, self).__init__()
         self.num_gaussians = num_gaussians
-        self.embed = nn.Embedding(vocab_size, embed_size)  # replace this with word2vec
+        self.gaussian_dim = gaussian_dim
+        # Input: word vector
+        self.embed = nn.Embedding(vocab_size, embed_size)
+        # TODO: init with word2vec
+        # RNN | GRU | LSTM ?
         self.rnn = nn.RNN(input_size=embed_size, hidden_size=hidden_size, num_layers=num_layers, batch_first=True)
-        self.fc = nn.Linear(hidden_size, 2 * num_gaussians)
+        # Feed-Forward from rnn_dim to output_dim
+        gaussian_size = self.gaussian_dim + self.gaussian_dim  # 1 gaussian = mu~(dim) + var~(dim)
+        self.fc = nn.Linear(hidden_size, gaussian_size * self.num_gaussians)
         self.init_weights()
 
     def init_weights(self):
@@ -27,8 +35,9 @@ class EncoderRNN(nn.Module):
         self.fc.weight.data.uniform_(-0.1, 0.1)
         self.fc.bias.data.fill_(0)
 
+    # TODO? handle mixture of gaussians rather than list of indep gaussians? ie: covariance matrix instead of log_var?
     def _reparametrize(self, mu, log_var):
-        eps = to_var(torch.randn(mu.size(0), mu.size(1)))
+        eps = to_var(torch.randn(mu.size(0), mu.size(1)))  # ~(bs, k*dim)
         z = mu + eps * torch.exp(log_var / 2)
         return z
 
@@ -36,8 +45,9 @@ class EncoderRNN(nn.Module):
         embeddings = self.embed(captions)
         packed = pack_padded_sequence(embeddings, lengths, batch_first=True)  # not 100% sure about this
         hiddens, out = self.rnn(packed)
-        mu, log_var = torch.chunk(self.fc(out[0]), 2, dim=-1)
-        return self._reparametrize(mu, log_var), mu[0], log_var[0]
+
+        mus, log_vars = torch.chunk(self.fc(out[0]), 2, dim=-1)  # mus & log_vars ~(bs, k*dim)
+        return self._reparametrize(mus, log_vars), mus[0], log_vars[0]
 
 
 #  TODO: Add Deconvolutions (replace fully connected (fc) layers
