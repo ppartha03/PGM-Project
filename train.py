@@ -4,6 +4,7 @@ import argparse
 import numpy as np
 from gensim.models import KeyedVectors
 import torch
+import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
 import torchvision.transforms as transforms
@@ -69,7 +70,7 @@ def run(args):
         for word, idx in vocab.word2idx.items():
             if word in w2v:
                 embeddings[idx] = w2v[word]
-        embeddings = to_var(embeddings)
+        embeddings = to_var(Variable(embeddings))
 
     else:
         print("\nCreating random word embeddings of size %dx%d" % (len(vocab), args.embedding_size))

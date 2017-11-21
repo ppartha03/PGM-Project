@@ -30,7 +30,7 @@ class EncoderRNN(nn.Module):
         self.embed = embeddings
         # TODO: init with word2vec
         # RNN | GRU | LSTM ?
-        self.rnn = nn.RNN(input_size=embed_size, hidden_size=hidden_size, num_layers=num_layers, batch_first=True)
+        self.rnn = nn.RNN(input_size=self.embed.embedding_dim, hidden_size=hidden_size, num_layers=num_layers, batch_first=True)
         # Feed-Forward from rnn_dim to output_dim
         gaussian_size = self.gaussian_dim + self.gaussian_dim  # 1 gaussian = mu~(dim) + var~(dim)
         self.fc = nn.Linear(hidden_size, gaussian_size * self.num_gaussians)
