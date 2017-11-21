@@ -14,14 +14,20 @@ def to_var(x):
 #  TODO : Add Covariance Matrix
 #  TODO : Replace nn.Embedding with word2vec
 class EncoderRNN(nn.Module):
-    def __init__(self, vocab_size, embed_size, hidden_size, gaussian_dim, num_gaussians=1, num_layers=1):
+    def __init__(self, embeddings, hidden_size, gaussian_dim, num_gaussians, num_layers):
         """
+        Encoder network that works on the word level of captions.
+        :param embeddings: |vocab|x|word_vector| matrix
+        :param hidden_size: size of the caption embedding
+        :param gaussian_dim: dimmension of each gaussian variable
+        :param num_gaussians: number of gaussian variables to sample
+        :param num_layers: number of hidden layers for the encoder
         """
         super(EncoderRNN, self).__init__()
         self.num_gaussians = num_gaussians
         self.gaussian_dim = gaussian_dim
         # Input: word vector
-        self.embed = nn.Embedding(vocab_size, embed_size)
+        self.embed = embeddings
         # TODO: init with word2vec
         # RNN | GRU | LSTM ?
         self.rnn = nn.RNN(input_size=embed_size, hidden_size=hidden_size, num_layers=num_layers, batch_first=True)
@@ -31,7 +37,6 @@ class EncoderRNN(nn.Module):
         self.init_weights()
 
     def init_weights(self):
-        self.embed.weight.data.uniform_(-0.1, 0.1)
         self.fc.weight.data.uniform_(-0.1, 0.1)
         self.fc.bias.data.fill_(0)
 
