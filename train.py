@@ -70,12 +70,9 @@ def run(args):
         for word, idx in vocab.word2idx.items():
             if word in w2v:
                 embeddings[idx] = w2v[word]
-        embeddings = to_var(Variable(embeddings))
-
     else:
         print("\nCreating random word embeddings of size %dx%d" % (len(vocab), args.embedding_size))
-        embeddings = nn.Embedding(len(vocab), args.embedding_size)
-        embeddings.weight.data.uniform_(-0.1, 0.1)
+        embeddings = np.random.uniform(-0.1, 0.1, size=(len(vocab), args.embedding_size))
 
     print("\nCreating encoder...")
     encoder = EncoderRNN(embeddings, args.encoding_size, args.gaussian_dim, args.num_gaussians, args.encoder_layers)
@@ -90,6 +87,7 @@ def run(args):
         decoder.cuda()
 
     params = list(encoder.parameters()) + list(decoder.parameters())
+    params = filter(lambda p: p.requires_grad, params)  # if we decide to fix parameters, ignore them
     optimizer = optim.Adam(params=params, lr=args.learning_rate)
 
     # TODO add KL with covarariance matrix
@@ -124,6 +122,7 @@ def run(args):
             epoch_kl_loss += kl_loss.data[0]
             nb_train_batches += 1
 
+            # in debug mode, break the training loop after 10 batches
             if args.debug and nb_train_batches == 10:
                 break
 
