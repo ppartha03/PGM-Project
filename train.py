@@ -65,6 +65,7 @@ def run(args):
             w2v, emb_size = load_glove_vec(args.embeddings_loc)
         else:
             print("ERROR: unknown embedding file %s" % args.embeddings_loc)
+            return
 
         embeddings = np.random.uniform(-0.1, 0.1, size=(len(vocab), emb_size))
         for word, idx in vocab.word2idx.items():
@@ -75,7 +76,8 @@ def run(args):
         embeddings = np.random.uniform(-0.1, 0.1, size=(len(vocab), args.embedding_size))
 
     print("\nCreating encoder...")
-    encoder = EncoderRNN(embeddings, args.encoding_size, args.gaussian_dim, args.num_gaussians, args.encoder_layers)
+    encoder = EncoderRNN(args.encoder_gate, embeddings, args.encoding_size, args.gaussian_dim, args.num_gaussians,
+                         args.encoder_layers, args.dropout_rate, fixed_embeddings=args.fix_embeddings, bidirectional=args.bidirectional)
     print("Creating decoder...")
     decoder = DecoderCNN(input_size=args.num_gaussians*args.gaussian_dim,
                          output_size=train_loader.dataset[0][0].view(-1).size(0))
@@ -86,9 +88,23 @@ def run(args):
         encoder.cuda()
         decoder.cuda()
 
+    # fetch parameters to train
     params = list(encoder.parameters()) + list(decoder.parameters())
     params = filter(lambda p: p.requires_grad, params)  # if we decide to fix parameters, ignore them
-    optimizer = optim.Adam(params=params, lr=args.learning_rate)
+    # create optimizer ('adam', 'sgd', 'rmsprop', 'adagrad', 'adadelta')
+    if args.optimizer == 'adam':
+        optimizer = optim.Adam(params=params, lr=args.learning_rate)
+    elif args.optimizer == 'sgd':
+        optimizer = optim.SGD(params=params, lr=args.learning_rate)
+    elif args.optimizer == 'rmsprop':
+        optimizer = optim.RMSprop(params=params, lr=args.learning_rate)
+    elif args.optimizer == 'adagrad':
+        optimizer = optim.Adagrad(params=params, lr=args.learning_rate)
+    elif args.optimizer == 'adadelta':
+        optimizer = optim.Adadelta(params=params, lr=args.learning_rate)
+    else:
+        print("ERROR: unknown optimizer: %s" % args.optimizer)
+        return
 
     # TODO add KL with covarariance matrix
     def kl(mu, log_var):
@@ -148,7 +164,10 @@ if __name__ == '__main__':
     parser.add_argument('--activation',    '-ac', choices=['sigmoid', 'relu', 'swish'], type=str, default='relu', help="activation function")
     parser.add_argument('--dropout_rate',  '-dr', type=float, default=0.0, help="probability of dropout layer")
     ## encoder network
+    parser.add_argument('--encoder_gate', choices=['rnn', 'gru', 'lstm'], default='rnn', help="recurrent network gate")
+    parser.add_argument('--bidirectional', action='store_true', help="bidirectional encoder")
     parser.add_argument('--embedding_size', type=int, default=300, help="size of word vectors")
+    parser.add_argument('--fix_embeddings', action='store_true', help="don't train word embeddings")
     parser.add_argument('--encoding_size',  type=int, default=500, help="size of caption vectors")
     parser.add_argument('--encoder_layers', type=int, default=1, help="number of hidden layers in the caption encoder")
     ## decoder network
