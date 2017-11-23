@@ -150,6 +150,14 @@ def run(args):
     print('Finished Training, time elapsed: ', round(time.time() - start_time, 2), ' seconds')
 
 
+def str2bool(v):
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--debug', '-d', action='store_true', help="stop training after 10 batches")
@@ -165,9 +173,9 @@ if __name__ == '__main__':
     parser.add_argument('--dropout_rate',  '-dr', type=float, default=0.0, help="probability of dropout layer")
     ## encoder network
     parser.add_argument('--encoder_gate', choices=['rnn', 'gru', 'lstm'], default='rnn', help="recurrent network gate")
-    parser.add_argument('--bidirectional', action='store_true', help="bidirectional encoder")
+    parser.add_argument('--bidirectional',  type=str2bool, default='False', help="bidirectional encoder")
     parser.add_argument('--embedding_size', type=int, default=300, help="size of word vectors")
-    parser.add_argument('--fix_embeddings', action='store_true', help="don't train word embeddings")
+    parser.add_argument('--fix_embeddings', type=str2bool, default='False', help="don't train word embeddings")
     parser.add_argument('--encoding_size',  type=int, default=500, help="size of caption vectors")
     parser.add_argument('--encoder_layers', type=int, default=1, help="number of hidden layers in the caption encoder")
     ## decoder network
