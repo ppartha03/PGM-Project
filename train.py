@@ -77,9 +77,11 @@ def run(args):
 
     print("\nCreating encoder...")
     encoder = EncoderRNN(args.encoder_gate, embeddings, args.encoding_size, args.gaussian_dim, args.num_gaussians,
-                         args.encoder_layers, args.dropout_rate, fixed_embeddings=args.fix_embeddings, bidirectional=args.bidirectional)
+                         args.encoder_layers, args.dropout_rate, fixed_embeddings=args.fix_embeddings,
+                         bidirectional=args.bidirectional, general_covariance=args.general_covariance)
     print("Creating decoder...")
     decoder = DecoderCNN(input_size=args.num_gaussians*args.gaussian_dim,
+                         hidden_sizes=args.decoder_layers,
                          output_size=train_loader.dataset[0][0].view(-1).size(0))
 
     if torch.cuda.is_available():
@@ -106,9 +108,21 @@ def run(args):
         print("ERROR: unknown optimizer: %s" % args.optimizer)
         return
 
-    # TODO add KL with covarariance matrix
+    # TODO add KL with covarariance matrix (NOT WORKING)
     def kl(mu, log_var):
-        return (-0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())) / mu.view(-1).size(0)
+        if not args.general_covariance:
+             return (-0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())) / mu.view(-1).size(0)
+        else:
+            mu = mu.view((-1, args.num_gaussians, args.gaussian_dim))
+            log_var = log_var.view((-1, args.num_gaussians, args.gaussian_dim, args.gaussian_dim))
+            total_kl = 0
+            for g in range(args.num_gaussians):
+                for b in range(log_var.size(0)):
+                    log_var_g_b = log_var[b, g, :, :]
+                    mu_g_b = mu[b, g, :]
+                    total_kl += 0.5 * torch.sum(args.gaussian_dim + log_var_g_b.exp() - torch.trace(log_var_g_b.exp()) - mu_g_b.pow(2))
+            total_kl /= mu.view(-1).size(0)
+            return total_kl
 
     recon = torch.nn.MSELoss()
 
@@ -171,6 +185,7 @@ if __name__ == '__main__':
     parser.add_argument('--gaussian_dim',  '-gd', type=int, default=16, help="dimension of each gaussian variable")
     parser.add_argument('--activation',    '-ac', choices=['sigmoid', 'relu', 'swish'], type=str, default='relu', help="activation function")
     parser.add_argument('--dropout_rate',  '-dr', type=float, default=0.0, help="probability of dropout layer")
+    parser.add_argument('--general_covariance', type=str2bool, default='False', help="General Covariances")
     ## encoder network
     parser.add_argument('--encoder_gate', choices=['rnn', 'gru', 'lstm'], default='rnn', help="recurrent network gate")
     parser.add_argument('--bidirectional',  type=str2bool, default='False', help="bidirectional encoder")

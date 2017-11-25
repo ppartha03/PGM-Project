@@ -12,10 +12,9 @@ def to_var(x):
     return Variable(x)
 
 
-#  TODO : Add Covariance Matrix
 class EncoderRNN(nn.Module):
     def __init__(self, gate, embeddings, hidden_size, gaussian_dim, num_gaussians, num_layers,
-                 dropout, fixed_embeddings=False, bidirectional=False):
+                 dropout, fixed_embeddings=False, bidirectional=False, general_covariance=False):
         """
         Encoder network that works on the word level of captions.
         :param gate: one of 'rnn', 'gru', or 'lstm'
@@ -33,6 +32,7 @@ class EncoderRNN(nn.Module):
         self.gaussian_dim = gaussian_dim
         self.gate = gate
         self.bidirectional = bidirectional
+        self.general_covariance = general_covariance
         # Input: word vector
         embeddings = torch.from_numpy(embeddings).float()  # create a pytorch tensor from numpy array
         self.embed = nn.Embedding(embeddings.size(0), embeddings.size(1))  # create embedding layer
@@ -66,7 +66,7 @@ class EncoderRNN(nn.Module):
 
         # Feed-Forward from rnn_dim to output_dim: mu + sigma
         avg_size = self.gaussian_dim  # mu~(dim)
-        var_size = self.gaussian_dim  # variance~(dim)
+        var_size = self.gaussian_dim if not self.general_covariance else self.gaussian_dim ** 2  # variance~(dim)
         if self.bidirectional:
             self.fc_avg = nn.Linear(hidden_size * 2, avg_size * self.num_gaussians)
             self.fc_var = nn.Linear(hidden_size * 2, var_size * self.num_gaussians)
@@ -81,7 +81,7 @@ class EncoderRNN(nn.Module):
         self.fc_var.weight.data.uniform_(-0.1, 0.1)
         self.fc_var.bias.data.fill_(0)
 
-    def _reparametrize(self, mus, log_var):
+    def _reparametrize(self, mus, var):
         # build covariance matrix from list of variances, ie:
         #       [   var(x_1)   | cov(x_1 x_2) | cov(x_1 x_3) ]
         # cov = [ cov(x_2 x_1) |   var(x_2)   | cov(x_2 x_3) ]
@@ -120,8 +120,20 @@ class EncoderRNN(nn.Module):
         return torch.from_numpy(np_z).float()
         '''
 
+        # assume mus shape is (bs, num_gaussians * gaussian_dim)
+        # assume vars shape is (bs, num_gaussians * gaussian_dim if diagonal else num_gaussians * gaussian_dim ** 2)
+
         eps = to_var(torch.randn(mus.size(0), mus.size(1)))  # ~(bs, num_gaussians * mu_size=dim)
-        z = mus + eps * torch.exp(log_var / 2)
+        if not self.general_covariance:
+            z = mus + eps * torch.exp(var / 2)
+        else:
+            var = var.view((-1, self.num_gaussians, self.gaussian_dim, self.gaussian_dim))
+            eps = eps.view((-1, self.num_gaussians, self.gaussian_dim, 1))
+            mus = mus.view((-1, self.num_gaussians, self.gaussian_dim))
+            z = []
+            for i in range(self.num_gaussians):
+                z.append(mus[:, i, :] + torch.bmm(torch.exp(var[:, i, :, :] / 2), eps[:, i, :]).view(-1, self.gaussian_dim))
+            z = torch.cat(z, dim=-1)
         return z
 
     def forward(self, captions, lengths, sample=True):
@@ -165,10 +177,10 @@ class EncoderRNN(nn.Module):
 # see: https://github.com/SherlockLiao/pytorch-beginner/tree/master/08-AutoEncoder
 # see: http://pytorch.org/docs/master/nn.html#torch.nn.ConvTranspose2d
 class DecoderCNN(nn.Module):
-    def __init__(self, input_size, output_size):
+    def __init__(self, input_size, hidden_sizes, output_size):
         super(DecoderCNN, self).__init__()
-        self.fc1 = nn.Linear(input_size, 256)
-        self.fc2 = nn.Linear(256, output_size)
+        self.fc1 = nn.Linear(input_size, hidden_sizes[0])
+        self.fc2 = nn.Linear(hidden_sizes[0], output_size)
 
     def init_weights(self):
         self.fc1.weight.data.uniform_(-0.1, 0.1)
