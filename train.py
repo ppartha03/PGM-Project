@@ -78,11 +78,13 @@ def run(args):
     print("\nCreating encoder...")
     encoder = EncoderRNN(args.encoder_gate, embeddings, args.encoding_size, args.gaussian_dim, args.num_gaussians,
                          args.encoder_layers, args.dropout_rate, fixed_embeddings=args.fix_embeddings,
-                         bidirectional=args.bidirectional, general_covariance=args.general_covariance)
-    print("Creating decoder...")
+                         bidirectional=args.bidirectional, indep_gaussians=args.indep_gaussians)
+    print(encoder)
+    print("\nCreating decoder...")
     decoder = DecoderCNN(input_size=args.num_gaussians*args.gaussian_dim,
                          hidden_sizes=args.decoder_layers,
                          output_size=train_loader.dataset[0][0].view(-1).size(0))
+    print(decoder)
 
     if torch.cuda.is_available():
         print("\ncuda available!")
@@ -108,19 +110,28 @@ def run(args):
         print("ERROR: unknown optimizer: %s" % args.optimizer)
         return
 
-    # TODO add KL with covarariance matrix (NOT WORKING)
+    # KL loss  # TODO: why not using torch.nn.KLDivLoss ??
     def kl(mu, log_var):
-        if not args.general_covariance:
-             return (-0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())) / mu.view(-1).size(0)
+        if args.indep_gaussians:
+            # TODO: paste source url for this... see another definition: https://stats.stackexchange.com/a/281725
+            return (-0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())) / mu.view(-1).size(0)
         else:
+            # TODO: DIVERGING!! :( :(
             mu = mu.view((-1, args.num_gaussians, args.gaussian_dim))
-            log_var = log_var.view((-1, args.num_gaussians, args.gaussian_dim, args.gaussian_dim))
+            log_var = log_var.view((-1, args.num_gaussians, args.gaussian_dim))
             total_kl = 0
             for g in range(args.num_gaussians):
                 for b in range(log_var.size(0)):
-                    log_var_g_b = log_var[b, g, :, :]
-                    mu_g_b = mu[b, g, :]
-                    total_kl += 0.5 * torch.sum(args.gaussian_dim + log_var_g_b.exp() - torch.trace(log_var_g_b.exp()) - mu_g_b.pow(2))
+                    log_var_g_b = log_var[b, g, :]  # ~(dim)
+                    cov_g_b = torch.ger(
+                            torch.exp(log_var_g_b),
+                            torch.exp(log_var_g_b)
+                    )  # ~(dim x dim)
+                    mu_g_b = mu[b, g, :]  # ~(dim)
+                    # TODO: paste source url for this... see another definition: https://stats.stackexchange.com/a/281725
+                    total_kl += 0.5 * torch.sum(
+                            args.gaussian_dim + cov_g_b - torch.trace(cov_g_b) - mu_g_b**2
+                    )
             total_kl /= mu.view(-1).size(0)
             return total_kl
 
@@ -138,12 +149,14 @@ def run(args):
             images = to_var(images)
             captions = to_var(captions)
 
-            sampled, mu, log_var = encoder(captions, lengths)
+            sampled, mus, var = encoder(captions, lengths)
             outputs = decoder(sampled)
 
-            kl_loss = kl(mu, log_var)
+            kl_loss = kl(mus, var)
             recon_loss = recon(outputs, images)
-            print("epoch %.2d - step %.3d - kl loss %.6f - recon loss %.6f" % (epoch+1, i+1, round(kl_loss.data[0], 6), round(recon_loss.data[0], 6)))
+            print("epoch %.2d - step %.3d - kl loss %.6f - recon loss %.6f" % (
+                epoch+1, i+1, round(kl_loss.data[0], 6), round(recon_loss.data[0], 6)
+            ))
 
             loss = kl_loss + 2*recon_loss  # put more emphasis on the reconstruction loss?
             loss.backward()
@@ -185,7 +198,7 @@ if __name__ == '__main__':
     parser.add_argument('--gaussian_dim',  '-gd', type=int, default=16, help="dimension of each gaussian variable")
     parser.add_argument('--activation',    '-ac', choices=['sigmoid', 'relu', 'swish'], type=str, default='relu', help="activation function")
     parser.add_argument('--dropout_rate',  '-dr', type=float, default=0.0, help="probability of dropout layer")
-    parser.add_argument('--general_covariance', type=str2bool, default='False', help="General Covariances")
+    parser.add_argument('--indep_gaussians', type=str2bool, default='True', help="Sample from independent gaussian distributions. Otherwise will sample from mixture of gaussians.")
     ## encoder network
     parser.add_argument('--encoder_gate', choices=['rnn', 'gru', 'lstm'], default='rnn', help="recurrent network gate")
     parser.add_argument('--bidirectional',  type=str2bool, default='False', help="bidirectional encoder")

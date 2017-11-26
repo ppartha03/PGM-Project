@@ -14,7 +14,7 @@ def to_var(x):
 
 class EncoderRNN(nn.Module):
     def __init__(self, gate, embeddings, hidden_size, gaussian_dim, num_gaussians, num_layers,
-                 dropout, fixed_embeddings=False, bidirectional=False, general_covariance=False):
+                 dropout, fixed_embeddings=False, bidirectional=False, indep_gaussians=True):
         """
         Encoder network that works on the word level of captions.
         :param gate: one of 'rnn', 'gru', or 'lstm'
@@ -26,13 +26,14 @@ class EncoderRNN(nn.Module):
         :param dropout: if non-zero, will add a dropout layer to the rnn
         :param fixed_embeddings: freeze word embeddings during training
         :param bidirectional: bidirectional rnn
+        :param indep_gaussians: sample from indep gaussians, otherwise will sample from mixture
         """
         super(EncoderRNN, self).__init__()
         self.num_gaussians = num_gaussians
         self.gaussian_dim = gaussian_dim
         self.gate = gate
         self.bidirectional = bidirectional
-        self.general_covariance = general_covariance
+        self.indep_gaussians = indep_gaussians
         # Input: word vector
         embeddings = torch.from_numpy(embeddings).float()  # create a pytorch tensor from numpy array
         self.embed = nn.Embedding(embeddings.size(0), embeddings.size(1))  # create embedding layer
@@ -64,113 +65,83 @@ class EncoderRNN(nn.Module):
             print("ERROR: unknown encoder gate: %s" % self.gate)
             return
 
-        # Feed-Forward from rnn_dim to output_dim: mu + sigma
-        avg_size = self.gaussian_dim  # mu~(dim)
-        var_size = self.gaussian_dim if not self.general_covariance else self.gaussian_dim ** 2  # variance~(dim)
-        if self.bidirectional:
-            self.fc_avg = nn.Linear(hidden_size * 2, avg_size * self.num_gaussians)
-            self.fc_var = nn.Linear(hidden_size * 2, var_size * self.num_gaussians)
-        else:
-            self.fc_avg = nn.Linear(hidden_size, avg_size * self.num_gaussians)
-            self.fc_var = nn.Linear(hidden_size, var_size * self.num_gaussians)
+        # Feed-Forward: from rnn_dim to output_dim: mu + sigma
+        true_hidden_size = hidden_size*2 if self.bidirectional else hidden_size
+
+        self.fc_avg = nn.Linear(true_hidden_size, self.gaussian_dim * self.num_gaussians)
+        self.fc_var = nn.Linear(true_hidden_size, self.gaussian_dim * self.num_gaussians)
+
         self.init_weights()
 
     def init_weights(self):
+        # rnn parameters
+        for name, param in self.rnn.named_parameters():
+            if name.startswith('weight'):
+                param.data.normal_(0., 0.1)
+            elif name.startswith('bias'):
+                param.data.fill_(0)
+            else:
+                print('default initialization for parameter %s' % name)
+        # fully connected parameters
         self.fc_avg.weight.data.uniform_(-0.1, 0.1)
         self.fc_avg.bias.data.fill_(0)
         self.fc_var.weight.data.uniform_(-0.1, 0.1)
         self.fc_var.bias.data.fill_(0)
 
-    def _reparametrize(self, mus, var):
+    def _reparametrize(self, mus, log_vars):
         # build covariance matrix from list of variances, ie:
         #       [   var(x_1)   | cov(x_1 x_2) | cov(x_1 x_3) ]
         # cov = [ cov(x_2 x_1) |   var(x_2)   | cov(x_2 x_3) ]
         #       [ cov(x_3 x_1) | cov(x_3 x_2) |   var(x_3)   ]
-        '''
-        TODO: do the following using ONLY torch!
-
-        np_mus = mus.data.numpy()
-        np_var = log_var.data.numpy()
-        batch_size = np_mus.shape[0]
-        np_z = numpy.zeros((batch_size, self.num_gaussians, self.gaussian_dim))
-
-        # for each gaussian
-        for idx in range(0, self.num_gaussians*self.gaussian_dim, self.num_gaussians):
-            # meanS for each example
-            np_mu = np_mus[:, idx:idx+self.gaussian_dim]  # ~(bs, dim)
-            # covarianceS for each example
-            np_cov = np.array([  # covariance = outer product between variances
-                np.outer(
-                    np_var[ex, idx:idx+self.gaussian_dim],
-                    np_var[ex, idx:idx+self.gaussian_dim]
-                ) for ex in range(batch_size)
-            ])  # ~(bs, dim, dim)
-
-            # sample for each example according to its mixture of gaussian
-            samples = np.array([
-                np.random.multivariate_normal(
-                    np_mu[ex], np_cov[ex]
-                ) for ex in range(batch_size)
-            ])  # ~(bs, dim)
-
-            # populate z tensor
-            np_z[:, idx/self.gaussian_dim, :] = samples
-
-        np_z = np_z.reshape(batch_size, -1)  # reshape to (bs, num_gaussians * gaussian_dim)
-        return torch.from_numpy(np_z).float()
-        '''
 
         # assume mus shape is (bs, num_gaussians * gaussian_dim)
-        # assume vars shape is (bs, num_gaussians * gaussian_dim if diagonal else num_gaussians * gaussian_dim ** 2)
+        # assume variances shape is (bs, num_gaussians * gaussian_dim)
 
         eps = to_var(torch.randn(mus.size(0), mus.size(1)))  # ~(bs, num_gaussians * mu_size=dim)
-        if not self.general_covariance:
-            z = mus + eps * torch.exp(var / 2)
+        if self.indep_gaussians:
+            z = mus + eps * torch.exp(log_vars / 2)
         else:
-            var = var.view((-1, self.num_gaussians, self.gaussian_dim, self.gaussian_dim))
+            log_vars = log_vars.view((-1, self.num_gaussians, self.gaussian_dim))
             eps = eps.view((-1, self.num_gaussians, self.gaussian_dim, 1))
             mus = mus.view((-1, self.num_gaussians, self.gaussian_dim))
-            z = []
+            z = []  # list of samples each of shape ~(bs, gaussian_dim)
             for i in range(self.num_gaussians):
-                z.append(mus[:, i, :] + torch.bmm(torch.exp(var[:, i, :, :] / 2), eps[:, i, :]).view(-1, self.gaussian_dim))
+                # covarianceS: batch outer product between exp{variances/2}
+                cov = torch.bmm(  # TODO: why do we take `exp{var/2}` and not simply `exp{var}` ???
+                        torch.exp(log_vars[:, i, :]/2.).view(-1, self.gaussian_dim, 1),
+                        torch.exp(log_vars[:, i, :]/2.).view(-1, 1, self.gaussian_dim)
+                )  # ~(bs, dim, dim)
+
+                z.append(mus[:, i, :] + torch.bmm(cov, eps[:, i, :]).view(-1, self.gaussian_dim))
             z = torch.cat(z, dim=-1)
         return z
 
+
     def forward(self, captions, lengths, sample=True):
         embeddings = self.embed(captions)  # ~(bs, max_len, embed)
-        print("embeddings: %s" % (embeddings.size(),))
 
         # pack sequences to avoid calculation on padded elements
-        # understood from: https://discuss.pytorch.org/t/understanding-pack-padded-sequence-and-pad-packed-sequence/4099/5
-        packed = pack_padded_sequence(embeddings, lengths, batch_first=True)  # makes a PackedSequence
+        # see: https://discuss.pytorch.org/t/understanding-pack-padded-sequence-and-pad-packed-sequence/4099/5
+        packed = pack_padded_sequence(embeddings, lengths, batch_first=True)  # convert embeddings to PackedSequence
 
-        # output ~(batch, seq_length, hidden_size * num_directions) <-- output features (h_t) from the last layer of the RNN, for each t.
-        # hidden ~(num_layers * num_directions, batch, hidden_size) <-- tensor containing the hidden state for t=seq_len
+        # output ~(batch, seq_length, hidden_size*num_directions) <-- output features (h_t) from the last layer of the RNN, for each t.
+        # hidden ~(num_layers*num_directions, batch, hidden_size) <-- tensor containing the hidden state for t=seq_len
         output, hidden = self.rnn(packed)  # encode caption
-        output, lengths_ = pad_packed_sequence(output, batch_first=True)  # convert back to Tensor
-        assert lengths == lengths_
-        # hiddens, out = self.rnn(packed)  # encode caption out~(num_layers*num_directions, batch, hidden_size)
-        print('Output size:', output.size(), '- Hidden sizes:', [h.size() for h in hidden])
-
         # lstm returns hidden state AND cell state
         if self.gate == 'lstm':
             hidden, cell = hidden
 
-        # unidirectional
-        # gru / rnn - 1 layer  --> take hidden[-1] bcs only one                          or   output[:, -1, :]
-        # lstm      - 1 layer  --> take hidden[0][-1] bcs [1][..] is only the cell state or   output[:, -1, :]
-        # gru / rnn - k layers --> take hidden[-1] bcs other are previous layers         or   output[:, -1, :]
-        # lstm      - k layers --> take hidden[0][-1] bcs [0][..] are previsou layers    or   output[:, -1, :]
-        # bidirectional
-        # gru / rnn - 1 layer  --> concat hidden[0 & 1]                                       or   output[:, -1, :]
-        # lstm      - 1 layer  --> concat hidden[0][0 & 1] bcs [1][..] is only the cell state or   output[:, -1, :]
-        # gru / rnn - k layers --> concat hidden[?? & ??] bcs returning 2*k states            or   output[:, -1, :]
-        # lstm      - k layers --> take hidden[0][?? & ??] bcs returning 2*k states           or   output[:, -1, :]
+        # convert back output PackedSequence to tensor
+        output, lengths_ = pad_packed_sequence(output, batch_first=True)
+        assert lengths == lengths_
+
+        # print('Output size:', output.size(), '- Hidden sizes:', [h.size() for h in hidden])
 
         mus = self.fc_avg(output[:, -1, :])  # map to gaussian means
         sds = self.fc_var(output[:, -1, :])  # map to gaussian variances
+        z = self._reparametrize(mus, sds)
 
-        return self._reparametrize(mus, sds), mus[0], sds[0]
+        return z, mus, sds
 
 
 # TODO: Add Deconvolutions (replace fully connected (fc) layers)
@@ -178,17 +149,58 @@ class EncoderRNN(nn.Module):
 # see: http://pytorch.org/docs/master/nn.html#torch.nn.ConvTranspose2d
 class DecoderCNN(nn.Module):
     def __init__(self, input_size, hidden_sizes, output_size):
+        """
+        :type input_size: int
+        :type hidden_sizes: list of ints for each hidden layers
+        :type output_size: int
+        """
         super(DecoderCNN, self).__init__()
-        self.fc1 = nn.Linear(input_size, hidden_sizes[0])
-        self.fc2 = nn.Linear(hidden_sizes[0], output_size)
+
+        self.hidden_sizes = hidden_sizes
+        self.layers = []
+
+        # unfortunately PyTorch hardly supports definition of hidden layers in a loop.
+        # see: https://discuss.pytorch.org/t/list-of-nn-module-in-a-nn-module/219
+        # dumb solution: check list length and create layers incrementaly...
+        self.fc_1 = nn.Linear(input_size, hidden_sizes[0])
+        self.layers.append(self.fc_1)
+        if len(self.hidden_sizes) >= 2:
+            self.fc_2 = nn.Linear(hidden_sizes[0], hidden_sizes[1])
+            self.layers.append(self.fc_2)
+        if len(self.hidden_sizes) >= 3:
+            self.fc_3 = nn.Linear(hidden_sizes[1], hidden_sizes[2])
+            self.layers.append(self.fc_3)
+        if len(self.hidden_sizes) >= 4:
+            self.fc_4 = nn.Linear(hidden_sizes[2], hidden_sizes[3])
+            self.layers.append(self.fc_4)
+        if len(self.hidden_sizes) >= 5:
+            self.fc_5 = nn.Linear(hidden_sizes[3], hidden_sizes[4])
+            self.layers.append(self.fc_5)
+        if len(self.hidden_sizes) >= 6:
+            self.fc_6 = nn.Linear(hidden_sizes[4], hidden_sizes[5])
+            self.layers.append(self.fc_6)
+        if len(self.hidden_sizes) > 6:
+            print('WARNING: layer %s will not be considered. Update code')
+            self.fc_last = nn.Linear(hidden_sizes[5], output_size)
+        else:
+            self.fc_last = nn.Linear(hidden_sizes[-1], output_size)
+        self.layers.append(self.fc_last)
+
+        self.init_weights()
 
     def init_weights(self):
-        self.fc1.weight.data.uniform_(-0.1, 0.1)
-        self.fc1.bias.data.fill_(0)
-        self.fc2.weight.data.uniform_(-0.1, 0.1)
-        self.fc2.bias.data.fill_(0)
+        """
+        initialize all weights for all decoder layers
+        """
+        for layer in self.layers:
+            layer.weight.data.uniform_(-0.1, 0.1)
+            layer.bias.data.fill_(0)
 
     def forward(self, x):
-        o = F.relu(self.fc1(x))
-        o = self.fc2(o)
+        o = x  # start with output = input
+        # for all hidden layers except the last one
+        for layer in self.layers[:-1]:
+            o = F.relu(layer(o))  # apply relu
+        o = self.layers[-1](o)    # last layer: no RELU
         return o
+
