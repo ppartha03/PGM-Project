@@ -1,3 +1,4 @@
+import os
 import time
 import pickle
 import argparse
@@ -7,10 +8,10 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
-import torchvision.transforms as transforms
+from torchvision import datasets, transforms
 
 from network import EncoderRNN, DecoderCNN
-from data_loader import get_loader
+from data_loader import get_loader, get_mnist_loader
 from build_vocab import Vocabulary
 
 
@@ -38,21 +39,40 @@ def load_glove_vec(fname):
 
 def run(args):
 
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.485, 0.456, 0.406),
-                             (0.229, 0.224, 0.225))
-    ])
+    if args.use_mnist:
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.1307,),
+                                 (0.3081,))
+        ])
+        print("Loading vocab...")
+        with open(args.vocab_loc, 'rb') as f:
+            vocab = pickle.load(f)
+        print("number of unique tokens: %d" % len(vocab))
 
-    print("Loading vocab...")
-    with open(args.vocab_loc, 'rb') as f:
-        vocab = pickle.load(f)
-    print("number of unique tokens: %d" % len(vocab))
+        print("Get data loader...")
+        train_loader = get_mnist_loader(
+                vocab=vocab, train=True, download=True, transform=transform,
+                batch_size=args.batch_size,
+                shuffle=True,
+                num_workers=2
+        )
 
-    print("Get data loader...")
-    train_loader = get_loader(root=args.images_loc,
-                              json=args.captions_loc,
-                              vocab=vocab, batch_size=args.batch_size, num_workers=2, shuffle=True, transform=transform)
+    else:
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.485, 0.456, 0.406),
+                                 (0.229, 0.224, 0.225))
+        ])
+        print("Loading vocab...")
+        with open(args.vocab_loc, 'rb') as f:
+            vocab = pickle.load(f)
+        print("number of unique tokens: %d" % len(vocab))
+
+        print("Get data loader...")
+        train_loader = get_loader(root=args.images_loc,
+                                  json=args.captions_loc,
+                                  vocab=vocab, batch_size=args.batch_size, num_workers=2, shuffle=True, transform=transform)
 
     # Input: word vector
     if args.embeddings_loc:
@@ -112,9 +132,11 @@ def run(args):
 
     # KL loss  # TODO: why not using torch.nn.KLDivLoss ??
     def kl(mu, log_var):
-        if args.indep_gaussians:
-            # TODO: paste source url for this... see another definition: https://stats.stackexchange.com/a/281725
-            return (-0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())) / mu.view(-1).size(0)
+        # if args.indep_gaussians:
+        #     # TODO: paste source url for this... see another definition: https://stats.stackexchange.com/a/281725
+        return (-0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())) / mu.view(-1).size(0)
+        # The above seems to work fine with mixture of gaussians as well!
+        '''
         else:
             # TODO: DIVERGING!! :( :(
             mu = mu.view((-1, args.num_gaussians, args.gaussian_dim))
@@ -134,6 +156,7 @@ def run(args):
                     )
             total_kl /= mu.view(-1).size(0)
             return total_kl
+        '''
 
     recon = torch.nn.MSELoss()
 
@@ -188,6 +211,7 @@ def str2bool(v):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--debug', '-d', action='store_true', help="stop training after 10 batches")
+    parser.add_argument('--gpu', '-g', type=int, default=0, help="GPU id to run the model on if GPU is available")
     # training params
     parser.add_argument('--epochs',        '-e' , type=int, default=1, help="num epochs")
     parser.add_argument('--batch_size',    '-bs', type=int, default=32, help="mini batch size")
@@ -209,12 +233,16 @@ if __name__ == '__main__':
     ## decoder network
     parser.add_argument('--decoder_layers', nargs='+', type=int, default=[256], help="List of hidden sizes for the de-convolution network")
     # data files
+    parser.add_argument('--vocab_loc', '-vl', default='./data/vocab.pkl', help="location of vocabulary")
+    parser.add_argument('--use_mnist', type=str2bool, default='False', help="Use the MNIST dataset instead of the provided one")
     parser.add_argument('--images_loc', '-il', default='/coco/images/resized2014', help="location of resized images")
     parser.add_argument('--captions_loc', '-cl', default='/coco/annotations/captions_train2014.json', help="location of captions")
-    parser.add_argument('--vocab_loc', '-vl', default='./data/vocab.pkl', help="location of vocabulary")
     parser.add_argument('--embeddings_loc', '-el', default=None, help="location of pretrained word embeddings")
     args = parser.parse_args()
     print('args: %s\n' % args)
+
+    os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '%d' % args.gpu
 
     run(args)
 

@@ -1,5 +1,5 @@
 import torch
-import torchvision.transforms as transforms
+from torchvision import transforms, datasets
 import torch.utils.data as data
 import os
 import pickle
@@ -103,3 +103,78 @@ def get_loader(root, json, vocab, transform, batch_size, shuffle, num_workers):
                                               num_workers=num_workers,
                                               collate_fn=collate_fn)
     return data_loader
+
+
+
+MNIST_VOCAB = None
+
+def mnist_collate_fn(data):
+    """
+    Used for MNIST
+    transforms data[1] to be a list of captions instead of a list of labels
+    """
+    assert MNIST_VOCAB is not None
+
+    sents_lvl1 = ['<label>']
+    sents_lvl2 = ["that 's <label>",
+                  "that 's a <label>"
+                  "this is a <label>",
+                  "this number is <label>",
+                  "this number is a <label>",
+                  "this is the number <label>",
+                  "black <label> on white"
+                  "black <label> on white background",
+                  "that 's a <label> on a white background",
+                  "that is a black <label> with a white background",
+                  "this is a black <label> on a white background"]
+
+    label2word = ['zero', 'one', 'two', 'three', 'four', 'five', 'six',
+            'seven', 'eight', 'nine']
+
+    images, labels = zip(*data)
+    for idx, l in enumerate(labels):
+        sent = np.random.choice(sents_lvl1)
+        # sent = np.random.choice(sents_lvl1 + sents_lvl2)
+        sent = sent.replace('<label>', label2word[int(l)])
+
+        tokens = nltk.tokenize.word_tokenize(str(sent).lower())
+        caption = []
+        caption.append(MNIST_VOCAB('<start>'))
+        caption.extend([MNIST_VOCAB(token) for token in tokens])
+        caption.append(MNIST_VOCAB('<end>'))
+        target = torch.Tensor(caption)
+
+        data[idx] = (data[idx][0], target)
+
+    # Sort a data list by caption length (descending order).
+    data.sort(key=lambda x: len(x[1]), reverse=True)
+    images, captions = zip(*data)
+
+    # Merge images (from tuple of 3D tensor to 4D tensor).
+    images = torch.stack(images, 0)
+
+    # Merge captions (from tuple of 1D tensor to 2D tensor).
+    lengths = [len(cap) for cap in captions]
+    targets = torch.zeros(len(captions), max(lengths)).long()
+    for i, cap in enumerate(captions):
+        end = lengths[i]
+        targets[i, :end] = cap[:end]
+    return images, targets, lengths
+
+def get_mnist_loader(vocab, train, download, transform, batch_size, shuffle, num_workers):
+    # MNIST data
+    mnist = datasets.MNIST(
+            './data',
+            train=train,
+            download=download,
+            transform=transform)
+    global MNIST_VOCAB
+    MNIST_VOCAB = vocab
+
+    data_loader = torch.utils.data.DataLoader(dataset=mnist,
+                                              batch_size=batch_size,
+                                              shuffle=shuffle,
+                                              num_workers=num_workers,
+                                              collate_fn=mnist_collate_fn)
+    return data_loader
+
