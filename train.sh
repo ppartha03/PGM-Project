@@ -7,7 +7,7 @@
 ###
 python3 train.py --gpu 2 \
     --save_prefix 'models/VED_mnist' \
-    --epochs 100 \
+    --epochs 1000 \
     --batch_size 128 \
     --optimizer 'adam' \
     --learning_rate 0.001 \

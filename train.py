@@ -161,6 +161,11 @@ def show_images(captions, images, outputs, use_mnist, vocab, k=1, prefix='genera
     assert len(captions) == len(images) == len(outputs)
     idx = np.random.choice(range(len(images)), k, replace=False)  # sample k unique indices
 
+    directory = prefix.split('/')
+    directory = '/'.join(directory[:-1])
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
     for i in idx:
         cap = captions[i].cpu().data.numpy()
         cap = ' '.join([vocab.idx2word[w] for w in cap])
@@ -239,7 +244,7 @@ def run(args):
     start_time = time.time()
     print("\nTraining model...")
     for epoch in range(args.epochs):
-        best_valid = -1.
+        best_valid = 100000.
         patience = args.patience
 
         epoch_recon_loss = 0.0
@@ -279,9 +284,11 @@ def run(args):
         ))
 
         # show some generated images after each epoch
-        show_images(captions, images, outputs, args.use_mnist, vocab, k=1, prefix='generated/epoch%.2d'%epoch)
+        show_images(captions, images, outputs, args.use_mnist, vocab, k=1,
+                prefix='%s_%s_samples/epoch%.2d' % (args.save_prefix, model_id, epoch+1)
+        )
 
-        if epoch_recon_loss > best_valid:
+        if epoch_recon_loss < best_valid:
             best_valid = epoch_recon_loss
             torch.save(encoder.state_dict(), "%s_%s_enc.pt" % (args.save_prefix, model_id))
             torch.save(decoder.state_dict(), "%s_%s_dec.pt" % (args.save_prefix, model_id))
