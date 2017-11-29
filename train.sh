@@ -5,26 +5,27 @@
 ###
 # Run script for Nico's environment
 ###
-python3 train.py --debug --gpu 1 \
-    --epochs 1 \
-    --batch_size 1024 \
+python3 train.py --gpu 2 \
+    --save_prefix 'models/VED_mnist' \
+    --epochs 100 \
+    --batch_size 128 \
     --optimizer 'adam' \
     --learning_rate 0.001 \
     --indep_gaussians 'f' \
     --encoder_gate 'gru' \
     --dropout_rate 0.0 \
-    --embedding_size 10 \
+    --embedding_size 30 \
     --encoding_size 50 \
     --encoder_layers 1 \
     --num_gaussians 10 \
-    --gaussian_dim 3 \
-    --decoder_layers 100 \
+    --gaussian_dim 30 \
+    --decoder_layers 500 \
     --vocab_loc './data/mnist_vocab.pkl' \
-    --use_mnist 'y'
+    --use_mnist 't' \
     # --images_loc '../data/coco/train2014_resized256' \
     # --captions_loc '../data/coco/annotations/captions_train2014.json' \
     # --bidirectional 'y' \
-    # --embeddings_loc '../data/embeddings/glove.840B.300d.txt'
+    # --embeddings_loc '../data/embeddings/glove.840B.300d.txt' \
 
 ###
 # Add your script here and comment the others

@@ -3,3 +3,5 @@ data/*.pkl
 data/processed
 data/raw
 *.pyc
+models/*.pt
+models/*.pkl
