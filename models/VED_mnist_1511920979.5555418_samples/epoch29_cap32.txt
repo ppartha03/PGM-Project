@@ -1,0 +1,1 @@
+<start> that 's a seven on a white background <end> <pad>
