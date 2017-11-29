@@ -217,7 +217,7 @@ def run(args):
 
     if torch.cuda.is_available():
         print("\ncuda available!")
-        print("Moving variables to cuda %d..." % torch.cuda.current_device())
+        print("Moving variables to cuda %d..." % args.gpu)
         encoder.cuda()
         decoder.cuda()
 
@@ -242,14 +242,14 @@ def run(args):
     recon = torch.nn.MSELoss()
 
     start_time = time.time()
+    best_valid = 100000.
+    patience = args.patience
+
     print("\nTraining model...")
     for epoch in range(args.epochs):
-        best_valid = 100000.
-        patience = args.patience
-
         epoch_recon_loss = 0.0
         epoch_kl_loss = 0.0
-        nb_train_batches = 0
+        nb_train_batches = 0.
         for i, (images, captions, lengths) in enumerate(train_loader):
             optimizer.zero_grad()
 
@@ -288,8 +288,25 @@ def run(args):
                 prefix='%s_%s_samples/epoch%.2d' % (args.save_prefix, model_id, epoch+1)
         )
 
-        if epoch_recon_loss < best_valid:
-            best_valid = epoch_recon_loss
+        print("computing validation loss...")
+        valid_recon_loss = 0.0
+        nb_valid_batches = 0.
+        for i, (images, captions, lengths) in enumerate(test_loader):
+
+            images = to_var(images)
+            captions = to_var(captions)
+
+            sampled, mus, var = encoder(captions, lengths)
+            outputs = decoder(sampled)
+
+            valid_recon_loss += recon(outputs, images).data[0]
+            nb_valid_batches += 1
+
+        valid_recon_loss /= nb_valid_batches
+
+        print("valid loss: %g - best loss: %g" % (valid_recon_loss, best_valid))
+        if valid_recon_loss < best_valid:
+            best_valid = valid_recon_loss
             torch.save(encoder.state_dict(), "%s_%s_enc.pt" % (args.save_prefix, model_id))
             torch.save(decoder.state_dict(), "%s_%s_dec.pt" % (args.save_prefix, model_id))
             patience = args.patience  # reset patience
