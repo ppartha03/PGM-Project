@@ -170,14 +170,14 @@ def show_images(captions, images, outputs, use_mnist, vocab, k=1, prefix='genera
         cap = captions[i].cpu().data.numpy()
         cap = ' '.join([vocab.idx2word[w] for w in cap])
         # print("%s" % cap)
-        with open('%scap%d.txt' % (prefix, i), 'w') as fd:
+        with open('%s_cap%d.txt' % (prefix, i), 'w') as fd:
             fd.write("%s\n" % cap)
 
         if use_mnist:
             img = images[i].cpu().data.numpy().reshape((28, 28))
             out = outputs[i].cpu().data.numpy().reshape((28, 28))
-            plt.imsave('%simg%d.png' % (prefix, i), img, cmap='Greys')
-            plt.imsave('%sout%d.png' % (prefix, i), out, cmap='Greys')
+            plt.imsave('%s_img%d.png' % (prefix, i), img, cmap='Greys')
+            plt.imsave('%s_out%d.png' % (prefix, i), out, cmap='Greys')
         else:
             # TODO: fix below! how to print proper RGB images..?
             img = np.uint8(
@@ -186,8 +186,8 @@ def show_images(captions, images, outputs, use_mnist, vocab, k=1, prefix='genera
             out = np.uint8(
                 outputs[i].cpu().data.numpy().reshape((256, 256, 3))*255
             )
-            plt.imsave('%simg%d.png' % (prefix, i), img)
-            plt.imsave('%sout%d.png' % (prefix, i), out)
+            plt.imsave('%s_img%d.png' % (prefix, i), img)
+            plt.imsave('%s_out%d.png' % (prefix, i), out)
 
         # plt.imshow(img)
         # plt.imshow(out)
