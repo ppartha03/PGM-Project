@@ -315,6 +315,9 @@ def run(args):
             patience -= 1  # decrease patience
             print("No improvement. patience: %d" % patience)
 
+        if patience <= 0:
+            break
+
     print('Finished Training, time elapsed: ', round(time.time() - start_time, 2), ' seconds')
 
 
