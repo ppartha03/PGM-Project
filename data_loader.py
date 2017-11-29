@@ -139,8 +139,8 @@ def mnist_collate_fn(data):
 
     images, labels = zip(*data)
     for idx, l in enumerate(labels):
-        sent = np.random.choice(sents_lvl1)
-        # sent = np.random.choice(sents_lvl1 + sents_lvl2)
+        # sent = np.random.choice(sents_lvl1)
+        sent = np.random.choice(sents_lvl1 + sents_lvl2)
         sent = sent.replace('<label>', label2word[int(l)])
 
         tokens = nltk.tokenize.word_tokenize(str(sent).lower())
