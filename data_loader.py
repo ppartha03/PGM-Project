@@ -84,9 +84,15 @@ def collate_fn(data):
     return images, targets, lengths
 
 
-def get_loader(root, json, vocab, transform, batch_size, shuffle, num_workers):
+def get_loader(root, json, vocab, train, transform, batch_size, shuffle, num_workers):
     """Returns torch.utils.data.DataLoader for custom coco dataset."""
     # COCO caption dataset
+    if train:
+        root = root.replace('val', 'train')
+        json = json.replace('val', 'train')
+    else:
+        root = root.replace('train', 'val')
+        json = json.replace('train', 'val')
     coco = CocoDataset(root=root,
                        json=json,
                        vocab=vocab,
