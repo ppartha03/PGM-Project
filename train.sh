@@ -6,7 +6,7 @@
 # Run script for Nico's environment
 ###
 python3 train.py --gpu 2 \
-    --save_prefix 'models/VED_mnist' \
+    --save_prefix 'models/VED_mnist-logic' \
     --epochs 1000 \
     --batch_size 128 \
     --optimizer 'adam' \
@@ -22,6 +22,7 @@ python3 train.py --gpu 2 \
     --decoder_layers 500 \
     --vocab_loc './data/mnist_vocab.pkl' \
     --use_mnist 't' \
+    --distractors 1 \
     # --images_loc '../data/coco/train2014_resized256' \
     # --captions_loc '../data/coco/annotations/captions_train2014.json' \
     # --bidirectional 'y' \

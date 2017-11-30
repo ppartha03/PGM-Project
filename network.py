@@ -34,6 +34,10 @@ class EncoderRNN(nn.Module):
         self.gate = gate
         self.bidirectional = bidirectional
         self.indep_gaussians = indep_gaussians
+        if self.indep_gaussians:
+            print('|__sampling from indep gaussian distributions')
+        else:
+            print('|__sampling from multivariate gaussian distributions')
         # Input: word vector
         embeddings = torch.from_numpy(embeddings).float()  # create a pytorch tensor from numpy array
         self.embed = nn.Embedding(embeddings.size(0), embeddings.size(1))  # create embedding layer

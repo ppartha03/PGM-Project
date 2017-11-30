@@ -85,11 +85,12 @@ def load_data(args):
             vocab = pickle.load(f)
         print("number of unique tokens: %d" % len(vocab))
 
-        print("Get data loader...")
+        print("Get MNIST data loader...")
         train_loader = get_mnist_loader(
                 vocab=vocab, train=True, download=True,
                 transform=transform,
                 batch_size=args.batch_size,
+                dist=args.distractors,
                 shuffle=True,
                 num_workers=2
         )
@@ -97,6 +98,7 @@ def load_data(args):
                 vocab=vocab, train=False, download=True,
                 transform=transform,
                 batch_size=args.batch_size,
+                dist=args.distractors,
                 shuffle=False,
                 num_workers=2
 
@@ -113,7 +115,7 @@ def load_data(args):
             vocab = pickle.load(f)
         print("number of unique tokens: %d" % len(vocab))
 
-        print("Get data loader...")
+        print("Get COCO data loader...")
         train_loader = get_loader(
                 root=args.images_loc, json=args.captions_loc, vocab=vocab, train=True,
                 transform=transform,
@@ -340,6 +342,7 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size',    '-bs', type=int, default=32, help="mini batch size")
     parser.add_argument('--learning_rate', '-lr', type=float, default=0.001, help="learning rate")
     parser.add_argument('--optimizer',     '-opt',choices=['adam', 'sgd', 'rmsprop', 'adagrad', 'adadelta'], default='adam', help="optimizer to use")
+
     # network architecture
     parser.add_argument('--num_gaussians', '-ng', type=int, default=2, help="num gaussians")
     parser.add_argument('--gaussian_dim',  '-gd', type=int, default=16, help="dimension of each gaussian variable")
@@ -355,12 +358,17 @@ if __name__ == '__main__':
     parser.add_argument('--encoder_layers', type=int, default=1, help="number of hidden layers in the caption encoder")
     ## decoder network
     parser.add_argument('--decoder_layers', nargs='+', type=int, default=[256], help="List of hidden sizes for the de-convolution network")
+
     # data files
     parser.add_argument('--vocab_loc', '-vl', default='./data/vocab.pkl', help="location of vocabulary")
+    parser.add_argument('--embeddings_loc', '-el', default=None, help="location of pretrained word embeddings")
+    ## mnist
     parser.add_argument('--use_mnist', type=str2bool, default='False', help="Use the MNIST dataset instead of the provided one")
+    parser.add_argument('--distractors', type=int, default=0, help="Use logical captions of the form `min one six` with this amount of distracting numbers")
+    ## coco
     parser.add_argument('--images_loc', '-il', default='/coco/images/resized2014', help="location of resized images")
     parser.add_argument('--captions_loc', '-cl', default='/coco/annotations/captions_train2014.json', help="location of captions")
-    parser.add_argument('--embeddings_loc', '-el', default=None, help="location of pretrained word embeddings")
+
     ## load & save model
     parser.add_argument('--save_prefix', default='models/VED', help="prefix to save model and arguments")
     parser.add_argument('--load_prefix', default=None, help="prefix to load model and arguments")

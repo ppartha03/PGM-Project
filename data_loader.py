@@ -113,6 +113,7 @@ def get_loader(root, json, vocab, train, transform, batch_size, shuffle, num_wor
 
 
 MNIST_VOCAB = None
+MNIST_DIST = None
 
 def mnist_collate_fn(data):
     """
@@ -120,6 +121,7 @@ def mnist_collate_fn(data):
     transforms data[1] to be a list of captions instead of a list of labels
     """
     assert MNIST_VOCAB is not None
+    assert MNIST_DIST is not None
 
     sents_lvl1 = ['<label>']
     sents_lvl2 = ["that 's <label>",
@@ -139,10 +141,36 @@ def mnist_collate_fn(data):
 
     images, labels = zip(*data)
     for idx, l in enumerate(labels):
-        # sent = np.random.choice(sents_lvl1)
-        sent = np.random.choice(sents_lvl1 + sents_lvl2)
+        if MNIST_DIST < 1:
+            # sent = np.random.choice(sents_lvl1)
+            sent = np.random.choice(sents_lvl1 + sents_lvl2)
+        else:
+            # create a logical sentence, ex: ``min six five nine``
+            if int(l) + MNIST_DIST > len(label2word)-1:
+                sent = 'max '
+            elif int(l) - MNIST_DIST < 0:
+                sent = 'min '
+            else:
+                sent = np.random.choice(['min ', 'max '])  # start with min/max
+
+            if sent == 'max ':  # sentence starts with `max`
+                # candidate distractions must be smaller than the label
+                candidates = label2word[:int(l)]
+            else:  # sentence starts with `min`
+                # candidate distractions must be higher than the label
+                candidates = label2word[int(l)+1:]
+            assert len(candidates) >= MNIST_DIST  # make sure we have enough to sample
+
+            content = ['<label>']  # list of numbers
+            # extend list of numbers with distractions
+            content.extend(np.random.choice(candidates, MNIST_DIST, replace=False))
+            np.random.shuffle(content)  # shuffle the list of numbers
+            sent += ' '.join(content)
+
+        # replace placeholder by the actual label
         sent = sent.replace('<label>', label2word[int(l)])
 
+        # create caption
         tokens = nltk.tokenize.word_tokenize(str(sent).lower())
         caption = []
         caption.append(MNIST_VOCAB('<start>'))
@@ -150,6 +178,7 @@ def mnist_collate_fn(data):
         caption.append(MNIST_VOCAB('<end>'))
         target = torch.Tensor(caption)
 
+        # set the caption in the data
         data[idx] = (data[idx][0], target)
 
     # Sort a data list by caption length (descending order).
@@ -167,7 +196,17 @@ def mnist_collate_fn(data):
         targets[i, :end] = cap[:end]
     return images, targets, lengths
 
-def get_mnist_loader(vocab, train, download, transform, batch_size, shuffle, num_workers):
+def get_mnist_loader(vocab, train, download, transform, batch_size, dist, shuffle, num_workers):
+    """
+    :param vocab: vocabulary of the captions
+    :param train: data flag mode
+    :param download: flag to download or not
+    :param transform: image transformer
+    :param batch_size: number of examples per batch
+    :param dist: if > 1 then using logical captions with this amount of distraction
+    :param shuffke: flag to shuffle the mini batches
+    :param num_workers: number of threads for loading data
+    """
     # MNIST data
     mnist = datasets.MNIST(
             './data',
@@ -176,6 +215,8 @@ def get_mnist_loader(vocab, train, download, transform, batch_size, shuffle, num
             transform=transform)
     global MNIST_VOCAB
     MNIST_VOCAB = vocab
+    global MNIST_DIST
+    MNIST_DIST = dist
 
     data_loader = torch.utils.data.DataLoader(dataset=mnist,
                                               batch_size=batch_size,
