@@ -1,0 +1,1 @@
+<start> that 's a eight on a white background <end> <pad>

@@ -1,0 +1,1 @@
+<start> this is a black zero on a white background <end>
