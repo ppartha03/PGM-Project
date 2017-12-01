@@ -1,0 +1,1 @@
+<start> that 's a six on a white background <end> <pad>

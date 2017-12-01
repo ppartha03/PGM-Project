@@ -1,0 +1,328 @@
+args: Namespace(activation='relu', batch_size=128, bidirectional=False, captions_loc='/coco/annotations/captions_train2014.json', debug=False, decoder_layers=[500], distractors=2, dropout_rate=0.0, embedding_size=30, embeddings_loc=None, encoder_gate='gru', encoder_layers=1, encoding_size=50, epochs=1000, fix_embeddings=False, gaussian_dim=30, gpu=2, images_loc='/coco/images/resized2014', indep_gaussians=True, learning_rate=0.001, load_prefix=None, num_gaussians=10, optimizer='adam', patience=10, save_prefix='models/indep/VED_mnist-logic2', use_mnist=True, verbose=False, vocab_loc='./data/mnist_vocab.pkl')
+
+Loading vocab...
+number of unique tokens: 29
+Get MNIST data loader...
+
+Creating random word embeddings of size 29x30
+
+Creating encoder...
+|__sampling from indep gaussian distributions
+EncoderRNN (
+  (embed): Embedding(29, 30)
+  (rnn): GRU(30, 50, batch_first=True)
+  (fc_avg): Linear (50 -> 300)
+  (fc_var): Linear (50 -> 300)
+)
+
+Creating decoder...
+DecoderCNN (
+  (fc_1): Linear (300 -> 500)
+  (fc_last): Linear (500 -> 784)
+)
+
+cuda available!
+Moving variables to cuda 2...
+
+Training model...
+Epoch: 1 - kl loss: 0.032574 - recon loss: 0.760063
+computing validation loss...
+valid loss: 0.720761 - best loss: 100000
+Saved new model.
+Epoch: 2 - kl loss: 0.021581 - recon loss: 0.704719
+computing validation loss...
+valid loss: 0.672694 - best loss: 0.720761
+Saved new model.
+Epoch: 3 - kl loss: 0.026292 - recon loss: 0.653424
+computing validation loss...
+valid loss: 0.640313 - best loss: 0.672694
+Saved new model.
+Epoch: 4 - kl loss: 0.028358 - recon loss: 0.63238
+computing validation loss...
+valid loss: 0.62399 - best loss: 0.640313
+Saved new model.
+Epoch: 5 - kl loss: 0.03014 - recon loss: 0.62219
+computing validation loss...
+valid loss: 0.618217 - best loss: 0.62399
+Saved new model.
+Epoch: 6 - kl loss: 0.031125 - recon loss: 0.615074
+computing validation loss...
+valid loss: 0.60438 - best loss: 0.618217
+Saved new model.
+Epoch: 7 - kl loss: 0.03787 - recon loss: 0.596673
+computing validation loss...
+valid loss: 0.587485 - best loss: 0.60438
+Saved new model.
+Epoch: 8 - kl loss: 0.037732 - recon loss: 0.585581
+computing validation loss...
+valid loss: 0.579096 - best loss: 0.587485
+Saved new model.
+Epoch: 9 - kl loss: 0.03615 - recon loss: 0.5804
+computing validation loss...
+valid loss: 0.574569 - best loss: 0.579096
+Saved new model.
+Epoch: 10 - kl loss: 0.034343 - recon loss: 0.577487
+computing validation loss...
+valid loss: 0.572378 - best loss: 0.574569
+Saved new model.
+Epoch: 11 - kl loss: 0.032632 - recon loss: 0.57571
+computing validation loss...
+valid loss: 0.571088 - best loss: 0.572378
+Saved new model.
+Epoch: 12 - kl loss: 0.03115 - recon loss: 0.574334
+computing validation loss...
+valid loss: 0.570041 - best loss: 0.571088
+Saved new model.
+Epoch: 13 - kl loss: 0.030025 - recon loss: 0.573448
+computing validation loss...
+valid loss: 0.568678 - best loss: 0.570041
+Saved new model.
+Epoch: 14 - kl loss: 0.028851 - recon loss: 0.572246
+computing validation loss...
+valid loss: 0.568321 - best loss: 0.568678
+Saved new model.
+Epoch: 15 - kl loss: 0.02782 - recon loss: 0.571448
+computing validation loss...
+valid loss: 0.567014 - best loss: 0.568321
+Saved new model.
+Epoch: 16 - kl loss: 0.026839 - recon loss: 0.570565
+computing validation loss...
+valid loss: 0.567337 - best loss: 0.567014
+No improvement. patience: 9
+Epoch: 17 - kl loss: 0.026151 - recon loss: 0.569969
+computing validation loss...
+valid loss: 0.566055 - best loss: 0.567014
+Saved new model.
+Epoch: 18 - kl loss: 0.0257 - recon loss: 0.569709
+computing validation loss...
+valid loss: 0.564818 - best loss: 0.566055
+Saved new model.
+Epoch: 19 - kl loss: 0.024941 - recon loss: 0.56923
+computing validation loss...
+valid loss: 0.565435 - best loss: 0.564818
+No improvement. patience: 9
+Epoch: 20 - kl loss: 0.024451 - recon loss: 0.568873
+computing validation loss...
+valid loss: 0.564913 - best loss: 0.564818
+No improvement. patience: 8
+Epoch: 21 - kl loss: 0.024226 - recon loss: 0.568723
+computing validation loss...
+valid loss: 0.565078 - best loss: 0.564818
+No improvement. patience: 7
+Epoch: 22 - kl loss: 0.023787 - recon loss: 0.568496
+computing validation loss...
+valid loss: 0.564447 - best loss: 0.564818
+Saved new model.
+Epoch: 23 - kl loss: 0.023557 - recon loss: 0.568416
+computing validation loss...
+valid loss: 0.565199 - best loss: 0.564447
+No improvement. patience: 9
+Epoch: 24 - kl loss: 0.023226 - recon loss: 0.568251
+computing validation loss...
+valid loss: 0.563919 - best loss: 0.564447
+Saved new model.
+Epoch: 25 - kl loss: 0.023117 - recon loss: 0.568036
+computing validation loss...
+valid loss: 0.564729 - best loss: 0.563919
+No improvement. patience: 9
+Epoch: 26 - kl loss: 0.022984 - recon loss: 0.567874
+computing validation loss...
+valid loss: 0.564139 - best loss: 0.563919
+No improvement. patience: 8
+Epoch: 27 - kl loss: 0.022739 - recon loss: 0.567797
+computing validation loss...
+valid loss: 0.563716 - best loss: 0.563919
+Saved new model.
+Epoch: 28 - kl loss: 0.022559 - recon loss: 0.567754
+computing validation loss...
+valid loss: 0.563229 - best loss: 0.563716
+Saved new model.
+Epoch: 29 - kl loss: 0.022236 - recon loss: 0.567528
+computing validation loss...
+valid loss: 0.563075 - best loss: 0.563229
+Saved new model.
+Epoch: 30 - kl loss: 0.021982 - recon loss: 0.567447
+computing validation loss...
+valid loss: 0.563091 - best loss: 0.563075
+No improvement. patience: 9
+Epoch: 31 - kl loss: 0.021892 - recon loss: 0.567214
+computing validation loss...
+valid loss: 0.563672 - best loss: 0.563075
+No improvement. patience: 8
+Epoch: 32 - kl loss: 0.021812 - recon loss: 0.567175
+computing validation loss...
+valid loss: 0.563319 - best loss: 0.563075
+No improvement. patience: 7
+Epoch: 33 - kl loss: 0.021746 - recon loss: 0.567114
+computing validation loss...
+valid loss: 0.563407 - best loss: 0.563075
+No improvement. patience: 6
+Epoch: 34 - kl loss: 0.021707 - recon loss: 0.567106
+computing validation loss...
+valid loss: 0.563125 - best loss: 0.563075
+No improvement. patience: 5
+Epoch: 35 - kl loss: 0.021615 - recon loss: 0.566953
+computing validation loss...
+valid loss: 0.56261 - best loss: 0.563075
+Saved new model.
+Epoch: 36 - kl loss: 0.02159 - recon loss: 0.566842
+computing validation loss...
+valid loss: 0.56334 - best loss: 0.56261
+No improvement. patience: 9
+Epoch: 37 - kl loss: 0.021463 - recon loss: 0.566853
+computing validation loss...
+valid loss: 0.56322 - best loss: 0.56261
+No improvement. patience: 8
+Epoch: 38 - kl loss: 0.021573 - recon loss: 0.566989
+computing validation loss...
+valid loss: 0.563149 - best loss: 0.56261
+No improvement. patience: 7
+Epoch: 39 - kl loss: 0.021386 - recon loss: 0.566854
+computing validation loss...
+valid loss: 0.563495 - best loss: 0.56261
+No improvement. patience: 6
+Epoch: 40 - kl loss: 0.021291 - recon loss: 0.566771
+computing validation loss...
+valid loss: 0.561926 - best loss: 0.56261
+Saved new model.
+Epoch: 41 - kl loss: 0.021209 - recon loss: 0.566684
+computing validation loss...
+valid loss: 0.56255 - best loss: 0.561926
+No improvement. patience: 9
+Epoch: 42 - kl loss: 0.021227 - recon loss: 0.566653
+computing validation loss...
+valid loss: 0.562908 - best loss: 0.561926
+No improvement. patience: 8
+Epoch: 43 - kl loss: 0.021355 - recon loss: 0.566704
+computing validation loss...
+valid loss: 0.562242 - best loss: 0.561926
+No improvement. patience: 7
+Epoch: 44 - kl loss: 0.021183 - recon loss: 0.566511
+computing validation loss...
+valid loss: 0.562791 - best loss: 0.561926
+No improvement. patience: 6
+Epoch: 45 - kl loss: 0.021113 - recon loss: 0.566588
+computing validation loss...
+valid loss: 0.562097 - best loss: 0.561926
+No improvement. patience: 5
+Epoch: 46 - kl loss: 0.021073 - recon loss: 0.566493
+computing validation loss...
+valid loss: 0.562625 - best loss: 0.561926
+No improvement. patience: 4
+Epoch: 47 - kl loss: 0.02118 - recon loss: 0.566471
+computing validation loss...
+valid loss: 0.562804 - best loss: 0.561926
+No improvement. patience: 3
+Epoch: 48 - kl loss: 0.021017 - recon loss: 0.566378
+computing validation loss...
+valid loss: 0.562364 - best loss: 0.561926
+No improvement. patience: 2
+Epoch: 49 - kl loss: 0.021063 - recon loss: 0.566357
+computing validation loss...
+valid loss: 0.561974 - best loss: 0.561926
+No improvement. patience: 1
+Epoch: 50 - kl loss: 0.021017 - recon loss: 0.56637
+computing validation loss...
+valid loss: 0.561865 - best loss: 0.561926
+Saved new model.
+Epoch: 51 - kl loss: 0.021093 - recon loss: 0.566336
+computing validation loss...
+valid loss: 0.562628 - best loss: 0.561865
+No improvement. patience: 9
+Epoch: 52 - kl loss: 0.02102 - recon loss: 0.566315
+computing validation loss...
+valid loss: 0.562116 - best loss: 0.561865
+No improvement. patience: 8
+Epoch: 53 - kl loss: 0.020966 - recon loss: 0.566222
+computing validation loss...
+valid loss: 0.562189 - best loss: 0.561865
+No improvement. patience: 7
+Epoch: 54 - kl loss: 0.0208 - recon loss: 0.566135
+computing validation loss...
+valid loss: 0.562258 - best loss: 0.561865
+No improvement. patience: 6
+Epoch: 55 - kl loss: 0.020799 - recon loss: 0.566191
+computing validation loss...
+valid loss: 0.561878 - best loss: 0.561865
+No improvement. patience: 5
+Epoch: 56 - kl loss: 0.020902 - recon loss: 0.566179
+computing validation loss...
+valid loss: 0.561924 - best loss: 0.561865
+No improvement. patience: 4
+Epoch: 57 - kl loss: 0.020903 - recon loss: 0.566159
+computing validation loss...
+valid loss: 0.562362 - best loss: 0.561865
+No improvement. patience: 3
+Epoch: 58 - kl loss: 0.020751 - recon loss: 0.566175
+computing validation loss...
+valid loss: 0.561653 - best loss: 0.561865
+Saved new model.
+Epoch: 59 - kl loss: 0.020766 - recon loss: 0.566001
+computing validation loss...
+valid loss: 0.562819 - best loss: 0.561653
+No improvement. patience: 9
+Epoch: 60 - kl loss: 0.02079 - recon loss: 0.56597
+computing validation loss...
+valid loss: 0.56212 - best loss: 0.561653
+No improvement. patience: 8
+Epoch: 61 - kl loss: 0.020712 - recon loss: 0.565899
+computing validation loss...
+valid loss: 0.562457 - best loss: 0.561653
+No improvement. patience: 7
+Epoch: 62 - kl loss: 0.020717 - recon loss: 0.565969
+computing validation loss...
+valid loss: 0.561846 - best loss: 0.561653
+No improvement. patience: 6
+Epoch: 63 - kl loss: 0.020697 - recon loss: 0.565998
+computing validation loss...
+valid loss: 0.561903 - best loss: 0.561653
+No improvement. patience: 5
+Epoch: 64 - kl loss: 0.02063 - recon loss: 0.565894
+computing validation loss...
+valid loss: 0.562211 - best loss: 0.561653
+No improvement. patience: 4
+Epoch: 65 - kl loss: 0.020639 - recon loss: 0.56598
+computing validation loss...
+valid loss: 0.561338 - best loss: 0.561653
+Saved new model.
+Epoch: 66 - kl loss: 0.020616 - recon loss: 0.565898
+computing validation loss...
+valid loss: 0.561886 - best loss: 0.561338
+No improvement. patience: 9
+Epoch: 67 - kl loss: 0.020556 - recon loss: 0.565886
+computing validation loss...
+valid loss: 0.562393 - best loss: 0.561338
+No improvement. patience: 8
+Epoch: 68 - kl loss: 0.020549 - recon loss: 0.565855
+computing validation loss...
+valid loss: 0.561901 - best loss: 0.561338
+No improvement. patience: 7
+Epoch: 69 - kl loss: 0.020623 - recon loss: 0.565942
+computing validation loss...
+valid loss: 0.561869 - best loss: 0.561338
+No improvement. patience: 6
+Epoch: 70 - kl loss: 0.0205 - recon loss: 0.565798
+computing validation loss...
+valid loss: 0.561765 - best loss: 0.561338
+No improvement. patience: 5
+Epoch: 71 - kl loss: 0.020478 - recon loss: 0.565816
+computing validation loss...
+valid loss: 0.561342 - best loss: 0.561338
+No improvement. patience: 4
+Epoch: 72 - kl loss: 0.020442 - recon loss: 0.565785
+computing validation loss...
+valid loss: 0.561759 - best loss: 0.561338
+No improvement. patience: 3
+Epoch: 73 - kl loss: 0.020386 - recon loss: 0.565779
+computing validation loss...
+valid loss: 0.561723 - best loss: 0.561338
+No improvement. patience: 2
+Epoch: 74 - kl loss: 0.020445 - recon loss: 0.565812
+computing validation loss...
+valid loss: 0.5619 - best loss: 0.561338
+No improvement. patience: 1
+Epoch: 75 - kl loss: 0.020417 - recon loss: 0.565799
+computing validation loss...
+valid loss: 0.56189 - best loss: 0.561338
+No improvement. patience: 0
+Finished Training, time elapsed:  1345.98  seconds
