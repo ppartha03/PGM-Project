@@ -1,1 +1,0 @@
-<start> that is a black eight with a white background <end>
