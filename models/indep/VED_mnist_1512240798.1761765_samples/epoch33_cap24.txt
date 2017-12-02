@@ -1,0 +1,1 @@
+<start> black five on <unk> five on white background <end> <pad>

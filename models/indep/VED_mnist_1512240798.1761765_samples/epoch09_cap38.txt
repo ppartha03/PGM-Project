@@ -1,0 +1,1 @@
+<start> black six on <unk> six on white background <end> <pad>
