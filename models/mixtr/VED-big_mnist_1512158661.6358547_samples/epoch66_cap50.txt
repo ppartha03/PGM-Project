@@ -1,1 +1,0 @@
-<start> this is the number six <end> <pad> <pad> <pad> <pad>

@@ -1,1 +1,0 @@
-<start> that is a black six with a white background <end>

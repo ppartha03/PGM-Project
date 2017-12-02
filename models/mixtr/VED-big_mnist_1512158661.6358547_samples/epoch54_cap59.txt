@@ -1,1 +1,0 @@
-<start> this is the number five <end> <pad> <pad> <pad> <pad>

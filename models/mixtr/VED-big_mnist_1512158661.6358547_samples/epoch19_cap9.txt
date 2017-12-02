@@ -1,1 +1,0 @@
-<start> that is a black nine with a white background <end>

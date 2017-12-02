@@ -1,1 +1,0 @@
-<start> black eight on <unk> eight on white background <end> <pad>
