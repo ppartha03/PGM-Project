@@ -1,0 +1,1 @@
+<start> black zero on <unk> zero on white background <end> <pad>
