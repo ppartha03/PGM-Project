@@ -5,7 +5,7 @@
 ###
 # Run script for Nico's environment
 ###
-python3 train.py --gpu 2 \
+python3 train.py --gpu 3 \
     --save_prefix 'models/mixtr/VED_mnist' \
     --epochs 1000 \
     --batch_size 128 \
@@ -23,9 +23,9 @@ python3 train.py --gpu 2 \
     --vocab_loc './data/mnist_vocab.pkl' \
     --use_mnist 't' \
     --distractors 0 \
+    --bidirectional 'f' \
     # --images_loc '../data/coco/train2014_resized256' \
     # --captions_loc '../data/coco/annotations/captions_train2014.json' \
-    # --bidirectional 'y' \
     # --embeddings_loc '../data/embeddings/glove.840B.300d.txt' \
 
 ###

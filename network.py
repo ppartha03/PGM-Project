@@ -141,8 +141,15 @@ class EncoderRNN(nn.Module):
 
         # print('Output size:', output.size(), '- Hidden sizes:', [h.size() for h in hidden])
 
-        mus = self.fc_avg(output[:, -1, :])  # map to gaussian means
-        sds = self.fc_var(output[:, -1, :])  # map to gaussian variances
+        # grab the encodding of the sentence, not the padded part!
+        encoded = output[
+                range(output.size(0)),  # take each sentence
+                list(map(lambda l: l-1, lengths)),  # at their last index (ie: length-1)
+                :  # take full encodding
+        ]  # ~ (bs, enc)
+
+        mus = self.fc_avg(encoded)  # map to gaussian means
+        sds = self.fc_var(encoded)  # map to gaussian variances
         z = self._reparametrize(mus, sds)
 
         return z, mus, sds

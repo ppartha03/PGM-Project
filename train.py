@@ -279,6 +279,9 @@ def run(args):
             if args.debug and nb_train_batches == 11:
                 break
 
+        if args.debug:
+            break
+
         epoch_recon_loss /= nb_train_batches
         epoch_kl_loss /= nb_train_batches
         print("Epoch: %d - kl loss: %g - recon loss: %g" % (
