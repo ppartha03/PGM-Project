@@ -1,0 +1,1 @@
+<start> black four on <unk> four on white background <end> <pad>
