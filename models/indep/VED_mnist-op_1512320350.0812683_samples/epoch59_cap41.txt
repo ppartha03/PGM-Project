@@ -1,0 +1,1 @@
+<start> eight minus eight <end> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
