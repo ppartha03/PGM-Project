@@ -123,28 +123,79 @@ def mnist_collate_fn(data):
     assert MNIST_VOCAB is not None
     assert MNIST_DIST is not None
 
-    sents_lvl1 = ['<label>']
-    sents_lvl2 = ["that 's <label>",
-                  "that 's a <label>"
-                  "this is a <label>",
-                  "this number is <label>",
-                  "this number is a <label>",
-                  "this is the number <label>",
-                  "black <label> on white"
-                  "black <label> on white background",
-                  "that 's a <label> on a white background",
-                  "that is a black <label> with a white background",
-                  "this is a black <label> on a white background"]
+    sents = ["<label>",
+             "that 's <label>",
+             "that 's a <label>"
+             "this is a <label>",
+             "this number is <label>",
+             "this number is a <label>",
+             "this is the number <label>",
+             "black <label> on white"
+             "black <label> on white background",
+             "that 's a <label> on a white background",
+             "that is a black <label> with a white background",
+             "this is a black <label> on a white background"]
 
     label2word = ['zero', 'one', 'two', 'three', 'four', 'five', 'six',
             'seven', 'eight', 'nine']
 
+    label2operation = [
+        ['zero', 'zero plus zero', 'zero minus zero', 'one minus one', 'two minus two',
+            'three minus three', 'four minus four', 'five minus five',
+            'six minus six', 'seven minus seven', 'eight minus eight',
+            'nine minus nine'],  # captions for 0
+        ['one', 'zero plus one', 'one plus zero', 'one minus zero', 'two minus one',
+            'three minus two', 'four minus three', 'five minus four',
+            'six minus five', 'seven minus six', 'eight minus seven',
+            'nine minus eight'],  # captions for 1
+        ['two', 'zero plus two', 'two plus zero', 'one plus one', 'two minus zero',
+            'three minus one', 'four minus two', 'five minus three',
+            'six minus four', 'seven minus five', 'eight minus six',
+            'nine minus seven'],  # captions for 2
+        ['three', 'zero plus three', 'three plus zero', 'one plus two', 'two plus one',
+            'one plus one plus one', 'three minus zero', 'four minus one',
+            'five minus two', 'six minus three', 'seven minus four',
+            'eight minus five', 'nine minus six'],  # captions for 3
+        ['four', 'zero plus four', 'four plus zero', 'one plus three', 'three plus one',
+            'two plus two', 'one plus one plus one plus one',
+            'four minus zero', 'five minus one', 'six minus two',
+            'seven minus three', 'eight minus four', 'nine minus five'],  # captions for 4
+        ['five', 'zero plus five', 'five plus zero', 'one plus four', 'four plus one',
+            'two plus three', 'three plus two',
+            'one plus one plus one plus one plus one',
+            'five minus zero', 'six minus one', 'seven minus two',
+            'eight minus three', 'nine minus four'],  # captions for five
+        ['six', 'zero plus six', 'six plus zero', 'one plus five', 'five plus one',
+            'two plus four', 'four plus two', 'three plus three',
+            'one plus one plus one plus one plus one plus one',
+            'six minus zero', 'seven minus one', 'eight minus two',
+            'nine minus three'],  # caption for six
+        ['seven', 'zero plus seven', 'seven plus zero', 'one plus six', 'six plus one',
+            'two plus five', 'five plus two', 'three plus four', 'four plus three',
+            'one plus one plus one plus one plus one plus one plus one',
+            'seven minus zero', 'eight minus one', 'nine minus two'],  # captions for seven
+        ['eight', 'zero plus eight', 'eight plus zero', 'one plus seven', 'seven plus one',
+            'two plus six', 'six plus two', 'three plus five', 'five plus three',
+            'four plus four',
+            'one plus one plus one plus one plus one plus one plus one plus one',
+            'eight minus zero', 'nine minus one'],  # captions for eight
+        ['nine', 'zero plus nine', 'nine plus zero', 'one plus eight', 'eight plus one',
+            'two plus seven', 'seven plus two', 'three plus six', 'six plus three',
+            'four plus five', 'five plus four',
+            'one plus one plus one plus one plus one plus one plus one plus one plus one',
+            'nine minus zero']  # captions for nine
+    ]
+
     images, labels = zip(*data)
     for idx, l in enumerate(labels):
         if MNIST_DIST < 1:
-            # sent = np.random.choice(sents_lvl1)
-            sent = np.random.choice(sents_lvl1 + sents_lvl2)
+            # zero distractions: complete sentences with one digit in it
+            sent = np.random.choice(sents)
+        elif MNIST_DIST > 5:
+            # more than five distractions: operations with compositionality involved
+            sent = np.random.choice(label2operation[int(l)])
         else:
+            # between one and five distractions:
             # create a logical sentence, ex: ``min six five nine``
             if int(l) + MNIST_DIST > len(label2word)-1:
                 sent = 'max '

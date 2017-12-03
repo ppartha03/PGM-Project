@@ -55,7 +55,7 @@ def build_vocab():
         vocab.add_word(w)
 
     # some logical connectors (maybe for future experiments)
-    logicals = ['min', 'max', 'or']
+    logicals = ['min', 'max', 'or', 'plus', 'minus']
     '''
     possible combinations:
     > min one four       --> should draw a 1
