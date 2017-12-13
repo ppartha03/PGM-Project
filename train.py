@@ -41,6 +41,63 @@ def load_glove_vec(fname):
     return word_vecs, length
 
 
+def get_fixed_embeddings(vocab):
+    required_binary_length = int(np.ceil( np.log2(len(vocab)) ))
+
+    embeddings = np.zeros((len(vocab), required_binary_length))
+    free_embedding = 10
+
+    for word, idx in vocab.word2idx.items():
+        if word == 'zero':
+            embeddings[idx] = np.array(
+                    list(np.binary_repr(0, width=required_binary_length))
+            )
+        elif word == 'one':
+            embeddings[idx] = np.array(
+                    list(np.binary_repr(1, width=required_binary_length))
+            )
+        elif word == 'two':
+            embeddings[idx] = np.array(
+                    list(np.binary_repr(2, width=required_binary_length))
+            )
+        elif word == 'three':
+            embeddings[idx] = np.array(
+                    list(np.binary_repr(3, width=required_binary_length))
+            )
+        elif word == 'four':
+            embeddings[idx] = np.array(
+                    list(np.binary_repr(4, width=required_binary_length))
+            )
+        elif word == 'five':
+            embeddings[idx] = np.array(
+                    list(np.binary_repr(5, width=required_binary_length))
+            )
+        elif word == 'six':
+            embeddings[idx] = np.array(
+                    list(np.binary_repr(6, width=required_binary_length))
+            )
+        elif word == 'seven':
+            embeddings[idx] = np.array(
+                    list(np.binary_repr(7, width=required_binary_length))
+            )
+        elif word == 'eight':
+            embeddings[idx] = np.array(
+                    list(np.binary_repr(8, width=required_binary_length))
+            )
+        elif word == 'nine':
+            embeddings[idx] = np.array(
+                    list(np.binary_repr(9, width=required_binary_length))
+            )
+        else:
+            embeddings[idx] = np.array(
+                    list(np.binary_repr(free_embedding, width=required_binary_length))
+            )
+            free_embedding += 1
+
+    return embeddings
+
+
+
 # KL loss  # TODO: why not using torch.nn.KLDivLoss ??
 def kl(mu, log_var):
     # if args.indep_gaussians:
@@ -147,6 +204,12 @@ def load_data(args):
         for word, idx in vocab.word2idx.items():
             if word in w2v:
                 embeddings[idx] = w2v[word]
+
+    elif args.fix_embeddings:
+        required_binary_length = int(np.ceil( np.log2(len(vocab)) ))
+        print("\nCreating fixed word embeddings of size %dx%d" % (len(vocab), required_binary_length))
+        embeddings = get_fixed_embeddings(vocab)
+
     else:
         print("\nCreating random word embeddings of size %dx%d" % (len(vocab), args.embedding_size))
         embeddings = np.random.uniform(-0.1, 0.1, size=(len(vocab), args.embedding_size))
@@ -206,6 +269,9 @@ def run(args):
                          args.encoder_layers, args.dropout_rate, fixed_embeddings=args.fix_embeddings,
                          bidirectional=args.bidirectional, indep_gaussians=args.indep_gaussians)
     print(encoder)
+
+    # print(encoder.embed.weight)
+
     print("\nCreating decoder...")
     decoder = DecoderCNN(input_size=args.num_gaussians*args.gaussian_dim,
                          hidden_sizes=args.decoder_layers,
@@ -263,7 +329,7 @@ def run(args):
 
             kl_loss = kl(mus, var)
             recon_loss = recon(outputs, images)
-            if args.verbose:
+            if args.verbose or args.debug:
                 print("epoch %.2d - step %.3d - kl loss %.6f - recon loss %.6f" % (
                     epoch+1, i+1, round(kl_loss.data[0], 6), round(recon_loss.data[0], 6)
                 ))
@@ -325,6 +391,9 @@ def run(args):
 
     print('Finished Training, time elapsed: ', round(time.time() - start_time, 2), ' seconds')
 
+    # print(encoder.embed.weight)
+
+
 
 def str2bool(v):
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
@@ -356,7 +425,7 @@ if __name__ == '__main__':
     parser.add_argument('--encoder_gate', choices=['rnn', 'gru', 'lstm'], default='rnn', help="recurrent network gate")
     parser.add_argument('--bidirectional',  type=str2bool, default='False', help="bidirectional encoder")
     parser.add_argument('--embedding_size', type=int, default=300, help="size of word vectors")
-    parser.add_argument('--fix_embeddings', type=str2bool, default='False', help="don't train word embeddings")
+    parser.add_argument('--fix_embeddings', type=str2bool, default='True', help="don't train word embeddings")
     parser.add_argument('--encoding_size',  type=int, default=500, help="size of caption vectors")
     parser.add_argument('--encoder_layers', type=int, default=1, help="number of hidden layers in the caption encoder")
     ## decoder network

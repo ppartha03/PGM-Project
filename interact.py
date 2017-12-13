@@ -142,14 +142,14 @@ def show_image(caption, output, use_mnist, vocab, prefix='generated/'):
     if use_mnist:
         out = output.cpu().data.numpy().reshape((28, 28))
         plt.imsave('%s_out.png' % prefix, out, cmap='Greys')
-        plt.imshow(out, cmap='Greys')
+        # plt.imshow(out, cmap='Greys')
     else:
         # TODO: fix below! how to print proper RGB images..?
         out = np.uint8(
             output.cpu().data.numpy().reshape((256, 256, 3))*255
         )
         plt.imsave('%s_out.png' % prefix, out)
-        plt.imshow(out)
+        # plt.imshow(out)
 
 
 def run(args):
