@@ -15,6 +15,7 @@ from torch.autograd import Variable
 from torchvision import datasets, transforms
 
 from network import EncoderRNN, DecoderCNN
+from classifier import Net
 from data_loader import get_loader, get_mnist_loader
 from build_vocab import Vocabulary
 
@@ -279,6 +280,14 @@ def run(args):
     print(decoder)
     model_id = time.time()  # used to save the models
 
+    if args.classifier_prefix:
+        print("\nLoading classifier...")
+        classifier = Net()
+        classifier.load_state_dict(torch.load("%s_classifier.pt" % args.classifier_prefix))
+        print(classifier)
+    else:
+        classifier = None
+
     # save parameters
     with open('%s_%s_args.pkl' % (args.save_prefix, model_id), 'wb') as f:
         pickle.dump(args, f)
@@ -288,6 +297,7 @@ def run(args):
         print("Moving variables to cuda %d..." % args.gpu)
         encoder.cuda()
         decoder.cuda()
+        classifier.cuda()
 
     # fetch parameters to train
     params = list(encoder.parameters()) + list(decoder.parameters())
@@ -309,16 +319,25 @@ def run(args):
 
     recon = torch.nn.MSELoss()
 
+    # TODO: try to use Cross Entropy Loss instead!
+    # recon = torch.nn.CrossEntropyLoss()
+
     start_time = time.time()
     best_valid = 100000.
     patience = args.patience
+
+    if classifier:
+        train_accuracies = []
+        valid_accuracies = []
 
     print("\nTraining model...")
     for epoch in range(args.epochs):
         epoch_recon_loss = 0.0
         epoch_kl_loss = 0.0
-        nb_train_batches = 0.
-        for i, (images, captions, lengths) in enumerate(train_loader):
+        if classifier:
+            classifier_acc = 0.0
+        nb_train_batches = 0.0
+        for i, (images, captions, lengths, labels) in enumerate(train_loader):
             optimizer.zero_grad()
 
             images = to_var(images)
@@ -341,6 +360,13 @@ def run(args):
             epoch_kl_loss += kl_loss.data[0]
             nb_train_batches += 1
 
+            # measure the accuracy of the classifier to recognize generated images
+            if classifier:
+                labels = torch.LongTensor(labels)
+                classifier_out = classifier(outputs.view(-1, 1, 28, 28))
+                predictions = classifier_out.data.max(1, keepdim=True)[1]  # idx of max log prob
+                classifier_acc += predictions.cpu().eq(labels.view_as(predictions)).sum()
+
             # in debug mode, break the training loop after 10 batches
             if args.debug and nb_train_batches == 11:
                 break
@@ -350,9 +376,16 @@ def run(args):
 
         epoch_recon_loss /= nb_train_batches
         epoch_kl_loss /= nb_train_batches
-        print("Epoch: %d - kl loss: %g - recon loss: %g" % (
-            (epoch+1), round(epoch_kl_loss, 6), round(epoch_recon_loss, 6)
-        ))
+        if classifier:
+            classifier_acc /= len(train_loader.dataset)
+            train_accuracies.append(classifier_acc)
+            print("Epoch: %d - kl loss: %g - recon loss: %g - clasifier acc: %g" % (
+                epoch+1, epoch_kl_loss, epoch_recon_loss, classifier_acc
+            ))
+        else:
+            print("Epoch: %d - kl loss: %g - recon loss: %g" % (
+                epoch+1, epoch_kl_loss, epoch_recon_loss
+            ))
 
         # show some generated images after each epoch
         show_images(captions, images, outputs, args.use_mnist, vocab, k=1,
@@ -361,8 +394,10 @@ def run(args):
 
         print("computing validation loss...")
         valid_recon_loss = 0.0
+        if classifier:
+            classifier_acc = 0.0
         nb_valid_batches = 0.
-        for i, (images, captions, lengths) in enumerate(test_loader):
+        for i, (images, captions, lengths, labels) in enumerate(test_loader):
 
             images = to_var(images)
             captions = to_var(captions)
@@ -373,9 +408,23 @@ def run(args):
             valid_recon_loss += recon(outputs, images).data[0]
             nb_valid_batches += 1
 
-        valid_recon_loss /= nb_valid_batches
+            # measure the accuracy of the classifier to recognize generated images
+            if classifier:
+                labels = torch.LongTensor(labels)
+                classifier_out = classifier(outputs.view(-1, 1, 28, 28))
+                predictions = classifier_out.data.max(1, keepdim=True)[1]  # idx of max log prob
+                classifier_acc += predictions.cpu().eq(labels.view_as(predictions)).sum()
 
-        print("valid loss: %g - best loss: %g" % (valid_recon_loss, best_valid))
+        valid_recon_loss /= nb_valid_batches
+        if classifier:
+            classifier_acc /= len(test_loader.dataset)
+            valid_accuracies.append(classifier_acc)
+            print("valid loss: %g - best loss: %g - classifier acc: %g" % (
+                valid_recon_loss, best_valid, classifier_acc
+            ))
+        else:
+            print("valid loss: %g - best loss: %g" % (valid_recon_loss, best_valid))
+
         if valid_recon_loss < best_valid:
             best_valid = valid_recon_loss
             torch.save(encoder.state_dict(), "%s_%s_enc.pt" % (args.save_prefix, model_id))
@@ -393,6 +442,10 @@ def run(args):
 
     # print(encoder.embed.weight)
 
+    if classifier:
+        print(train_accuracies)
+        print(valid_accuracies)
+        # TODO: plot those!
 
 
 def str2bool(v):
@@ -444,6 +497,7 @@ if __name__ == '__main__':
     ## load & save model
     parser.add_argument('--save_prefix', default='models/VED', help="prefix to save model and arguments")
     parser.add_argument('--load_prefix', default=None, help="prefix to load model and arguments")
+    parser.add_argument('--classifier_prefix', default=None, help="mnist classifier to use")
     args = parser.parse_args()
     print('args: %s\n' % args)
 

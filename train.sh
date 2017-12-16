@@ -7,6 +7,7 @@
 ###
 python3 train.py --gpu 0 \
     --save_prefix 'models/indep/VED_mnist-op' \
+    --classifier_prefix 'models/1513461532.108166' \
     --epochs 1000 \
     --batch_size 128 \
     --optimizer 'adam' \

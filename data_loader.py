@@ -229,7 +229,7 @@ def mnist_collate_fn(data):
         caption.append(MNIST_VOCAB('<end>'))
         target = torch.Tensor(caption)
 
-        # set the caption in the data
+        # add the caption in the data
         data[idx] = (data[idx][0], target)
 
     # Sort a data list by caption length (descending order).
@@ -245,7 +245,7 @@ def mnist_collate_fn(data):
     for i, cap in enumerate(captions):
         end = lengths[i]
         targets[i, :end] = cap[:end]
-    return images, targets, lengths
+    return images, targets, lengths, labels
 
 def get_mnist_loader(vocab, train, download, transform, batch_size, dist, shuffle, num_workers):
     """
