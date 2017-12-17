@@ -6,6 +6,8 @@ import argparse
 from PIL import Image
 import numpy as np
 from gensim.models import KeyedVectors
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 
 import torch
@@ -267,7 +269,7 @@ def run(args):
 
     print("\nCreating encoder...")
     encoder = EncoderRNN(args.encoder_gate, embeddings, args.encoding_size, args.gaussian_dim, args.num_gaussians,
-                         args.encoder_layers, args.dropout_rate, fixed_embeddings=args.fix_embeddings,
+                         args.encoder_layers, args.dropout_rate_enc, fixed_embeddings=args.fix_embeddings,
                          bidirectional=args.bidirectional, indep_gaussians=args.indep_gaussians)
     print(encoder)
 
@@ -276,7 +278,8 @@ def run(args):
     print("\nCreating decoder...")
     decoder = DecoderCNN(input_size=args.num_gaussians*args.gaussian_dim,
                          hidden_sizes=args.decoder_layers,
-                         output_size=train_loader.dataset[0][0].view(-1).size(0))
+                         output_size=train_loader.dataset[0][0].view(-1).size(0),
+                         dropout_rate=args.dropout_rate_dec)
     print(decoder)
     model_id = time.time()  # used to save the models
 
@@ -318,8 +321,7 @@ def run(args):
         return
 
     recon = torch.nn.MSELoss()
-
-    # TODO: try to use Cross Entropy Loss instead!
+    # TODO: try with Cross Entropy Loss
     # recon = torch.nn.CrossEntropyLoss()
 
     start_time = time.time()
@@ -445,7 +447,15 @@ def run(args):
     if classifier:
         print(train_accuracies)
         print(valid_accuracies)
-        # TODO: plot those!
+        fig = plt.figure()
+        plt.plot(range(len(train_accuracies)), train_accuracies, 'b-', label='train')
+        plt.plot(range(len(valid_accuracies)), valid_accuracies, 'r-', label='valid')
+        plt.legend()
+        plt.title('pre-trained MNIST classifier accuracy to label generated images')
+        plt.xlabel('epoch')
+        plt.ylabel('classifier accurary')
+        plt.savefig("%s_%s_plot.png" % (args.save_prefix, model_id))
+        plt.close(fig)
 
 
 def str2bool(v):
@@ -472,10 +482,10 @@ if __name__ == '__main__':
     parser.add_argument('--num_gaussians', '-ng', type=int, default=2, help="num gaussians")
     parser.add_argument('--gaussian_dim',  '-gd', type=int, default=16, help="dimension of each gaussian variable")
     parser.add_argument('--activation',    '-ac', choices=['sigmoid', 'relu', 'swish'], type=str, default='relu', help="activation function")
-    parser.add_argument('--dropout_rate',  '-dr', type=float, default=0.0, help="probability of dropout layer")
     parser.add_argument('--indep_gaussians', type=str2bool, default='True', help="Sample from independent gaussian distributions. Otherwise will sample from mixture of gaussians.")
     ## encoder network
     parser.add_argument('--encoder_gate', choices=['rnn', 'gru', 'lstm'], default='rnn', help="recurrent network gate")
+    parser.add_argument('--dropout_rate_enc', type=float, default=0.0, help="probability of dropout layer")
     parser.add_argument('--bidirectional',  type=str2bool, default='False', help="bidirectional encoder")
     parser.add_argument('--embedding_size', type=int, default=300, help="size of word vectors")
     parser.add_argument('--fix_embeddings', type=str2bool, default='True', help="don't train word embeddings")
@@ -483,6 +493,7 @@ if __name__ == '__main__':
     parser.add_argument('--encoder_layers', type=int, default=1, help="number of hidden layers in the caption encoder")
     ## decoder network
     parser.add_argument('--decoder_layers', nargs='+', type=int, default=[256], help="List of hidden sizes for the de-convolution network")
+    parser.add_argument('--dropout_rate_dec', type=float, default=0.0, help="probability of dropout layer")
 
     # data files
     parser.add_argument('--vocab_loc', '-vl', default='./data/vocab.pkl', help="location of vocabulary")

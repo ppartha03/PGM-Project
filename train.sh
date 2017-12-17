@@ -5,22 +5,23 @@
 ###
 # Run script for Nico's environment
 ###
-python3 train.py --gpu 0 \
+python3 train.py --gpu 0\
     --save_prefix 'models/indep/VED_mnist-op' \
-    --classifier_prefix 'models/1513461532.108166' \
+    --classifier_prefix 'models/1513468773.309654' \
     --epochs 1000 \
     --batch_size 128 \
     --optimizer 'adam' \
     --learning_rate 0.001 \
     --indep_gaussians 't' \
     --encoder_gate 'gru' \
-    --dropout_rate 0.0 \
+    --dropout_rate_enc 0.0 \
     --fix_embeddings 't' \
     --encoding_size 30 \
     --encoder_layers 1 \
     --num_gaussians 10 \
     --gaussian_dim 30 \
     --decoder_layers 500 \
+    --dropout_rate_dec 0.5 \
     --vocab_loc './data/mnist_vocab.pkl' \
     --use_mnist 't' \
     --distractors 100 \

@@ -1,0 +1,356 @@
+args: Namespace(activation='relu', batch_size=128, bidirectional=False, captions_loc='/coco/annotations/captions_train2014.json', classifier_prefix='models/1513468773.309654', debug=False, decoder_layers=[500], distractors=100, dropout_rate_dec=0.5, dropout_rate_enc=0.0, embedding_size=300, embeddings_loc=None, encoder_gate='gru', encoder_layers=1, encoding_size=30, epochs=1000, fix_embeddings=True, gaussian_dim=30, gpu=0, images_loc='/coco/images/resized2014', indep_gaussians=True, learning_rate=0.001, load_prefix=None, num_gaussians=10, optimizer='adam', patience=10, save_prefix='models/indep/VED_mnist-op', use_mnist=True, verbose=False, vocab_loc='./data/mnist_vocab.pkl')
+
+Loading vocab...
+number of unique tokens: 31
+Get MNIST data loader...
+
+Creating fixed word embeddings of size 31x5
+
+Creating encoder...
+|__sampling from indep gaussian distributions
+EncoderRNN (
+(embed): Embedding(31, 5)
+(rnn): GRU(5, 30, batch_first=True)
+(att): Linear (30 -> 30)
+(fc_avg): Linear (30 -> 300)
+(fc_var): Linear (30 -> 300)
+)
+
+Creating decoder...
+DecoderCNN (
+(fc_1): Linear (300 -> 500)
+(fc_last): Linear (500 -> 784)
+(dropout): Dropout (p = 0.5)
+)
+
+Loading classifier...
+Net (
+(conv1): Conv2d(1, 32, kernel_size=(5, 5), stride=(1, 1))
+(conv2): Conv2d(32, 64, kernel_size=(5, 5), stride=(1, 1))
+(fc1): Linear (1024 -> 512)
+(fc2): Linear (512 -> 10)
+)
+
+cuda available!
+Moving variables to cuda 0...
+
+Training model...
+Epoch: 1 - kl loss: 0.0495426 - recon loss: 0.811168 - clasifier acc: 0.0987333
+computing validation loss...
+valid loss: 0.733649 - best loss: 100000 - classifier acc: 0.1002
+Saved new model.
+Epoch: 2 - kl loss: 0.0247364 - recon loss: 0.724027 - clasifier acc: 0.0968667
+computing validation loss...
+valid loss: 0.723792 - best loss: 0.733649 - classifier acc: 0.0987
+Saved new model.
+Epoch: 3 - kl loss: 0.0176595 - recon loss: 0.718451 - clasifier acc: 0.0978333
+computing validation loss...
+valid loss: 0.719777 - best loss: 0.723792 - classifier acc: 0.0974
+Saved new model.
+Epoch: 4 - kl loss: 0.0124949 - recon loss: 0.71535 - clasifier acc: 0.0995
+computing validation loss...
+valid loss: 0.71771 - best loss: 0.719777 - classifier acc: 0.0985
+Saved new model.
+Epoch: 5 - kl loss: 0.00985094 - recon loss: 0.713625 - clasifier acc: 0.0973333
+computing validation loss...
+valid loss: 0.715975 - best loss: 0.71771 - classifier acc: 0.0992
+Saved new model.
+Epoch: 6 - kl loss: 0.00852411 - recon loss: 0.712497 - clasifier acc: 0.0973667
+computing validation loss...
+valid loss: 0.715894 - best loss: 0.715975 - classifier acc: 0.0964
+Saved new model.
+Epoch: 7 - kl loss: 0.00774261 - recon loss: 0.711914 - clasifier acc: 0.0982833
+computing validation loss...
+valid loss: 0.714748 - best loss: 0.715894 - classifier acc: 0.0985
+Saved new model.
+Epoch: 8 - kl loss: 0.00730787 - recon loss: 0.711092 - clasifier acc: 0.0993333
+computing validation loss...
+valid loss: 0.713746 - best loss: 0.714748 - classifier acc: 0.0991
+Saved new model.
+Epoch: 9 - kl loss: 0.0099047 - recon loss: 0.705459 - clasifier acc: 0.0994
+computing validation loss...
+valid loss: 0.699379 - best loss: 0.713746 - classifier acc: 0.0976
+Saved new model.
+Epoch: 10 - kl loss: 0.0140989 - recon loss: 0.694702 - clasifier acc: 0.104583
+computing validation loss...
+valid loss: 0.69513 - best loss: 0.699379 - classifier acc: 0.1046
+Saved new model.
+Epoch: 11 - kl loss: 0.0166019 - recon loss: 0.688888 - clasifier acc: 0.104767
+computing validation loss...
+valid loss: 0.683585 - best loss: 0.69513 - classifier acc: 0.1007
+Saved new model.
+Epoch: 12 - kl loss: 0.0198362 - recon loss: 0.677695 - clasifier acc: 0.104633
+computing validation loss...
+valid loss: 0.675123 - best loss: 0.683585 - classifier acc: 0.1061
+Saved new model.
+Epoch: 13 - kl loss: 0.0243155 - recon loss: 0.666891 - clasifier acc: 0.109783
+computing validation loss...
+valid loss: 0.661536 - best loss: 0.675123 - classifier acc: 0.1171
+Saved new model.
+Epoch: 14 - kl loss: 0.0299336 - recon loss: 0.653391 - clasifier acc: 0.113717
+computing validation loss...
+valid loss: 0.650134 - best loss: 0.661536 - classifier acc: 0.1111
+Saved new model.
+Epoch: 15 - kl loss: 0.031499 - recon loss: 0.647832 - clasifier acc: 0.11675
+computing validation loss...
+valid loss: 0.648078 - best loss: 0.650134 - classifier acc: 0.1148
+Saved new model.
+Epoch: 16 - kl loss: 0.0320532 - recon loss: 0.644788 - clasifier acc: 0.116467
+computing validation loss...
+valid loss: 0.642129 - best loss: 0.648078 - classifier acc: 0.118
+Saved new model.
+Epoch: 17 - kl loss: 0.0321151 - recon loss: 0.641902 - clasifier acc: 0.117433
+computing validation loss...
+valid loss: 0.640985 - best loss: 0.642129 - classifier acc: 0.1102
+Saved new model.
+Epoch: 18 - kl loss: 0.032183 - recon loss: 0.63863 - clasifier acc: 0.119167
+computing validation loss...
+valid loss: 0.637713 - best loss: 0.640985 - classifier acc: 0.1221
+Saved new model.
+Epoch: 19 - kl loss: 0.0321413 - recon loss: 0.634954 - clasifier acc: 0.12275
+computing validation loss...
+valid loss: 0.632158 - best loss: 0.637713 - classifier acc: 0.1248
+Saved new model.
+Epoch: 20 - kl loss: 0.031539 - recon loss: 0.628542 - clasifier acc: 0.12315
+computing validation loss...
+valid loss: 0.624517 - best loss: 0.632158 - classifier acc: 0.1156
+Saved new model.
+Epoch: 21 - kl loss: 0.0314851 - recon loss: 0.622288 - clasifier acc: 0.1262
+computing validation loss...
+valid loss: 0.619694 - best loss: 0.624517 - classifier acc: 0.1255
+Saved new model.
+Epoch: 22 - kl loss: 0.0309448 - recon loss: 0.617735 - clasifier acc: 0.127283
+computing validation loss...
+valid loss: 0.6151 - best loss: 0.619694 - classifier acc: 0.1232
+Saved new model.
+Epoch: 23 - kl loss: 0.0305863 - recon loss: 0.613778 - clasifier acc: 0.1302
+computing validation loss...
+valid loss: 0.611299 - best loss: 0.6151 - classifier acc: 0.1267
+Saved new model.
+Epoch: 24 - kl loss: 0.029959 - recon loss: 0.610812 - clasifier acc: 0.135167
+computing validation loss...
+valid loss: 0.606758 - best loss: 0.611299 - classifier acc: 0.1333
+Saved new model.
+Epoch: 25 - kl loss: 0.029669 - recon loss: 0.608142 - clasifier acc: 0.13215
+computing validation loss...
+valid loss: 0.604845 - best loss: 0.606758 - classifier acc: 0.1367
+Saved new model.
+Epoch: 26 - kl loss: 0.0295416 - recon loss: 0.605312 - clasifier acc: 0.134067
+computing validation loss...
+valid loss: 0.602719 - best loss: 0.604845 - classifier acc: 0.1313
+Saved new model.
+Epoch: 27 - kl loss: 0.0296692 - recon loss: 0.602328 - clasifier acc: 0.136733
+computing validation loss...
+valid loss: 0.598873 - best loss: 0.602719 - classifier acc: 0.1357
+Saved new model.
+Epoch: 28 - kl loss: 0.0298488 - recon loss: 0.599458 - clasifier acc: 0.137383
+computing validation loss...
+valid loss: 0.596976 - best loss: 0.598873 - classifier acc: 0.1277
+Saved new model.
+Epoch: 29 - kl loss: 0.0300094 - recon loss: 0.59811 - clasifier acc: 0.136183
+computing validation loss...
+valid loss: 0.59541 - best loss: 0.596976 - classifier acc: 0.1325
+Saved new model.
+Epoch: 30 - kl loss: 0.0299136 - recon loss: 0.596312 - clasifier acc: 0.136367
+computing validation loss...
+valid loss: 0.593264 - best loss: 0.59541 - classifier acc: 0.1335
+Saved new model.
+Epoch: 31 - kl loss: 0.0300344 - recon loss: 0.594848 - clasifier acc: 0.139233
+computing validation loss...
+valid loss: 0.591396 - best loss: 0.593264 - classifier acc: 0.1373
+Saved new model.
+Epoch: 32 - kl loss: 0.0297624 - recon loss: 0.593541 - clasifier acc: 0.14065
+computing validation loss...
+valid loss: 0.58989 - best loss: 0.591396 - classifier acc: 0.1493
+Saved new model.
+Epoch: 33 - kl loss: 0.0296888 - recon loss: 0.591694 - clasifier acc: 0.140533
+computing validation loss...
+valid loss: 0.587643 - best loss: 0.58989 - classifier acc: 0.1369
+Saved new model.
+Epoch: 34 - kl loss: 0.0293043 - recon loss: 0.590224 - clasifier acc: 0.142483
+computing validation loss...
+valid loss: 0.587349 - best loss: 0.587643 - classifier acc: 0.1328
+Saved new model.
+Epoch: 35 - kl loss: 0.0289037 - recon loss: 0.588902 - clasifier acc: 0.141233
+computing validation loss...
+valid loss: 0.586382 - best loss: 0.587349 - classifier acc: 0.1279
+Saved new model.
+Epoch: 36 - kl loss: 0.0280454 - recon loss: 0.587096 - clasifier acc: 0.140983
+computing validation loss...
+valid loss: 0.584195 - best loss: 0.586382 - classifier acc: 0.1352
+Saved new model.
+Epoch: 37 - kl loss: 0.0273772 - recon loss: 0.586799 - clasifier acc: 0.14215
+computing validation loss...
+valid loss: 0.582346 - best loss: 0.584195 - classifier acc: 0.1369
+Saved new model.
+Epoch: 38 - kl loss: 0.0268335 - recon loss: 0.585817 - clasifier acc: 0.146133
+computing validation loss...
+valid loss: 0.583024 - best loss: 0.582346 - classifier acc: 0.1426
+No improvement. patience: 9
+Epoch: 39 - kl loss: 0.026337 - recon loss: 0.585478 - clasifier acc: 0.142383
+computing validation loss...
+valid loss: 0.582407 - best loss: 0.582346 - classifier acc: 0.1418
+No improvement. patience: 8
+Epoch: 40 - kl loss: 0.0259478 - recon loss: 0.585125 - clasifier acc: 0.1461
+computing validation loss...
+valid loss: 0.580681 - best loss: 0.582346 - classifier acc: 0.1338
+Saved new model.
+Epoch: 41 - kl loss: 0.025803 - recon loss: 0.584575 - clasifier acc: 0.141033
+computing validation loss...
+valid loss: 0.580403 - best loss: 0.580681 - classifier acc: 0.1424
+Saved new model.
+Epoch: 42 - kl loss: 0.0257283 - recon loss: 0.584176 - clasifier acc: 0.13955
+computing validation loss...
+valid loss: 0.580507 - best loss: 0.580403 - classifier acc: 0.1433
+No improvement. patience: 9
+Epoch: 43 - kl loss: 0.0254699 - recon loss: 0.583849 - clasifier acc: 0.139467
+computing validation loss...
+valid loss: 0.580258 - best loss: 0.580403 - classifier acc: 0.1486
+Saved new model.
+Epoch: 44 - kl loss: 0.0254545 - recon loss: 0.58378 - clasifier acc: 0.146833
+computing validation loss...
+valid loss: 0.582336 - best loss: 0.580258 - classifier acc: 0.1493
+No improvement. patience: 9
+Epoch: 45 - kl loss: 0.0254351 - recon loss: 0.583352 - clasifier acc: 0.141767
+computing validation loss...
+valid loss: 0.580157 - best loss: 0.580258 - classifier acc: 0.1417
+Saved new model.
+Epoch: 46 - kl loss: 0.0253995 - recon loss: 0.583229 - clasifier acc: 0.139917
+computing validation loss...
+valid loss: 0.580281 - best loss: 0.580157 - classifier acc: 0.1376
+No improvement. patience: 9
+Epoch: 47 - kl loss: 0.0252706 - recon loss: 0.583298 - clasifier acc: 0.145067
+computing validation loss...
+valid loss: 0.58051 - best loss: 0.580157 - classifier acc: 0.1426
+No improvement. patience: 8
+Epoch: 48 - kl loss: 0.0252203 - recon loss: 0.582887 - clasifier acc: 0.14195
+computing validation loss...
+valid loss: 0.579196 - best loss: 0.580157 - classifier acc: 0.133
+Saved new model.
+Epoch: 49 - kl loss: 0.0250343 - recon loss: 0.582837 - clasifier acc: 0.147883
+computing validation loss...
+valid loss: 0.579169 - best loss: 0.579196 - classifier acc: 0.1341
+Saved new model.
+Epoch: 50 - kl loss: 0.0250366 - recon loss: 0.582557 - clasifier acc: 0.13915
+computing validation loss...
+valid loss: 0.57998 - best loss: 0.579169 - classifier acc: 0.1319
+No improvement. patience: 9
+Epoch: 51 - kl loss: 0.0251003 - recon loss: 0.582639 - clasifier acc: 0.14355
+computing validation loss...
+valid loss: 0.579787 - best loss: 0.579169 - classifier acc: 0.1375
+No improvement. patience: 8
+Epoch: 52 - kl loss: 0.0249068 - recon loss: 0.582304 - clasifier acc: 0.145867
+computing validation loss...
+valid loss: 0.580101 - best loss: 0.579169 - classifier acc: 0.1391
+No improvement. patience: 7
+Epoch: 53 - kl loss: 0.0247717 - recon loss: 0.58213 - clasifier acc: 0.144467
+computing validation loss...
+valid loss: 0.579589 - best loss: 0.579169 - classifier acc: 0.133
+No improvement. patience: 6
+Epoch: 54 - kl loss: 0.0248645 - recon loss: 0.582016 - clasifier acc: 0.14605
+computing validation loss...
+valid loss: 0.578429 - best loss: 0.579169 - classifier acc: 0.1416
+Saved new model.
+Epoch: 55 - kl loss: 0.0247198 - recon loss: 0.582214 - clasifier acc: 0.142367
+computing validation loss...
+valid loss: 0.578799 - best loss: 0.578429 - classifier acc: 0.1333
+No improvement. patience: 9
+Epoch: 56 - kl loss: 0.0246084 - recon loss: 0.581869 - clasifier acc: 0.14425
+computing validation loss...
+valid loss: 0.578281 - best loss: 0.578429 - classifier acc: 0.1453
+Saved new model.
+Epoch: 57 - kl loss: 0.0245753 - recon loss: 0.581851 - clasifier acc: 0.147067
+computing validation loss...
+valid loss: 0.578996 - best loss: 0.578281 - classifier acc: 0.1571
+No improvement. patience: 9
+Epoch: 58 - kl loss: 0.0245593 - recon loss: 0.581605 - clasifier acc: 0.14175
+computing validation loss...
+valid loss: 0.578552 - best loss: 0.578281 - classifier acc: 0.1537
+No improvement. patience: 8
+Epoch: 59 - kl loss: 0.0245346 - recon loss: 0.581566 - clasifier acc: 0.147767
+computing validation loss...
+valid loss: 0.579534 - best loss: 0.578281 - classifier acc: 0.1329
+No improvement. patience: 7
+Epoch: 60 - kl loss: 0.0244347 - recon loss: 0.581931 - clasifier acc: 0.141067
+computing validation loss...
+valid loss: 0.579053 - best loss: 0.578281 - classifier acc: 0.1375
+No improvement. patience: 6
+Epoch: 61 - kl loss: 0.0243175 - recon loss: 0.581509 - clasifier acc: 0.14415
+computing validation loss...
+valid loss: 0.578005 - best loss: 0.578281 - classifier acc: 0.1297
+Saved new model.
+Epoch: 62 - kl loss: 0.0242465 - recon loss: 0.581694 - clasifier acc: 0.143383
+computing validation loss...
+valid loss: 0.578866 - best loss: 0.578005 - classifier acc: 0.1471
+No improvement. patience: 9
+Epoch: 63 - kl loss: 0.0243318 - recon loss: 0.58177 - clasifier acc: 0.14655
+computing validation loss...
+valid loss: 0.578791 - best loss: 0.578005 - classifier acc: 0.1465
+No improvement. patience: 8
+Epoch: 64 - kl loss: 0.0241675 - recon loss: 0.581485 - clasifier acc: 0.143367
+computing validation loss...
+valid loss: 0.577533 - best loss: 0.578005 - classifier acc: 0.1433
+Saved new model.
+Epoch: 65 - kl loss: 0.0241093 - recon loss: 0.581867 - clasifier acc: 0.14435
+computing validation loss...
+valid loss: 0.578364 - best loss: 0.577533 - classifier acc: 0.148
+No improvement. patience: 9
+Epoch: 66 - kl loss: 0.0241017 - recon loss: 0.581771 - clasifier acc: 0.1412
+computing validation loss...
+valid loss: 0.579089 - best loss: 0.577533 - classifier acc: 0.1454
+No improvement. patience: 8
+Epoch: 67 - kl loss: 0.0240181 - recon loss: 0.581758 - clasifier acc: 0.147917
+computing validation loss...
+valid loss: 0.577648 - best loss: 0.577533 - classifier acc: 0.1424
+No improvement. patience: 7
+Epoch: 68 - kl loss: 0.0241005 - recon loss: 0.581619 - clasifier acc: 0.147133
+computing validation loss...
+valid loss: 0.578906 - best loss: 0.577533 - classifier acc: 0.1446
+No improvement. patience: 6
+Epoch: 69 - kl loss: 0.0238884 - recon loss: 0.581395 - clasifier acc: 0.1425
+computing validation loss...
+valid loss: 0.576812 - best loss: 0.577533 - classifier acc: 0.1515
+Saved new model.
+Epoch: 70 - kl loss: 0.0238841 - recon loss: 0.581036 - clasifier acc: 0.145283
+computing validation loss...
+valid loss: 0.577685 - best loss: 0.576812 - classifier acc: 0.1426
+No improvement. patience: 9
+Epoch: 71 - kl loss: 0.0237811 - recon loss: 0.581116 - clasifier acc: 0.144633
+computing validation loss...
+valid loss: 0.578403 - best loss: 0.576812 - classifier acc: 0.1459
+No improvement. patience: 8
+Epoch: 72 - kl loss: 0.0239002 - recon loss: 0.581261 - clasifier acc: 0.141917
+computing validation loss...
+valid loss: 0.577278 - best loss: 0.576812 - classifier acc: 0.1399
+No improvement. patience: 7
+Epoch: 73 - kl loss: 0.0236793 - recon loss: 0.580769 - clasifier acc: 0.144733
+computing validation loss...
+valid loss: 0.578041 - best loss: 0.576812 - classifier acc: 0.1296
+No improvement. patience: 6
+Epoch: 74 - kl loss: 0.0235276 - recon loss: 0.580911 - clasifier acc: 0.1437
+computing validation loss...
+valid loss: 0.578459 - best loss: 0.576812 - classifier acc: 0.1494
+No improvement. patience: 5
+Epoch: 75 - kl loss: 0.0235832 - recon loss: 0.580968 - clasifier acc: 0.14525
+computing validation loss...
+valid loss: 0.578148 - best loss: 0.576812 - classifier acc: 0.1393
+No improvement. patience: 4
+Epoch: 76 - kl loss: 0.0235111 - recon loss: 0.581136 - clasifier acc: 0.144983
+computing validation loss...
+valid loss: 0.57911 - best loss: 0.576812 - classifier acc: 0.141
+No improvement. patience: 3
+Epoch: 77 - kl loss: 0.0232882 - recon loss: 0.580935 - clasifier acc: 0.143233
+computing validation loss...
+valid loss: 0.578143 - best loss: 0.576812 - classifier acc: 0.1307
+No improvement. patience: 2
+Epoch: 78 - kl loss: 0.0233636 - recon loss: 0.580956 - clasifier acc: 0.141583
+computing validation loss...
+valid loss: 0.578161 - best loss: 0.576812 - classifier acc: 0.1354
+No improvement. patience: 1
+Epoch: 79 - kl loss: 0.0231577 - recon loss: 0.58091 - clasifier acc: 0.143583
+computing validation loss...
+valid loss: 0.576889 - best loss: 0.576812 - classifier acc: 0.1262
+No improvement. patience: 0
+Finished Training, time elapsed:  1014.33  seconds
+[0.09873333333333334, 0.09686666666666667, 0.09783333333333333, 0.0995, 0.09733333333333333, 0.09736666666666667, 0.09828333333333333, 0.09933333333333333, 0.0994, 0.10458333333333333, 0.10476666666666666, 0.10463333333333333, 0.10978333333333333, 0.11371666666666666, 0.11675, 0.11646666666666666, 0.11743333333333333, 0.11916666666666667, 0.12275, 0.12315, 0.1262, 0.12728333333333333, 0.1302, 0.13516666666666666, 0.13215, 0.13406666666666667, 0.13673333333333335, 0.13738333333333333, 0.13618333333333332, 0.13636666666666666, 0.13923333333333332, 0.14065, 0.14053333333333334, 0.14248333333333332, 0.14123333333333332, 0.14098333333333332, 0.14215, 0.14613333333333334, 0.14238333333333333, 0.1461, 0.14103333333333334, 0.13955, 0.13946666666666666, 0.14683333333333334, 0.14176666666666668, 0.13991666666666666, 0.14506666666666668, 0.14195, 0.14788333333333334, 0.13915, 0.14355, 0.14586666666666667, 0.14446666666666666, 0.14605, 0.14236666666666667, 0.14425, 0.14706666666666668, 0.14175, 0.14776666666666666, 0.14106666666666667, 0.14415, 0.14338333333333333, 0.14655, 0.14336666666666667, 0.14435, 0.1412, 0.14791666666666667, 0.14713333333333334, 0.1425, 0.14528333333333332, 0.14463333333333334, 0.14191666666666666, 0.14473333333333332, 0.1437, 0.14525, 0.14498333333333333, 0.14323333333333332, 0.14158333333333334, 0.14358333333333334]
+[0.1002, 0.0987, 0.0974, 0.0985, 0.0992, 0.0964, 0.0985, 0.0991, 0.0976, 0.1046, 0.1007, 0.1061, 0.1171, 0.1111, 0.1148, 0.118, 0.1102, 0.1221, 0.1248, 0.1156, 0.1255, 0.1232, 0.1267, 0.1333, 0.1367, 0.1313, 0.1357, 0.1277, 0.1325, 0.1335, 0.1373, 0.1493, 0.1369, 0.1328, 0.1279, 0.1352, 0.1369, 0.1426, 0.1418, 0.1338, 0.1424, 0.1433, 0.1486, 0.1493, 0.1417, 0.1376, 0.1426, 0.133, 0.1341, 0.1319, 0.1375, 0.1391, 0.133, 0.1416, 0.1333, 0.1453, 0.1571, 0.1537, 0.1329, 0.1375, 0.1297, 0.1471, 0.1465, 0.1433, 0.148, 0.1454, 0.1424, 0.1446, 0.1515, 0.1426, 0.1459, 0.1399, 0.1296, 0.1494, 0.1393, 0.141, 0.1307, 0.1354, 0.1262]

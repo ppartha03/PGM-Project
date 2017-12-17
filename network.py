@@ -12,6 +12,19 @@ def to_var(x):
     return Variable(x)
 
 
+def softmax(input, axis):
+    """
+    taken from https://discuss.pytorch.org/t/why-softmax-function-cant-specify-the-dimension-to-operate/2637
+    """
+    input_size = input.size()
+    trans_input = input.transpose(axis, -1)
+    trans_size = trans_input.size()
+    input_2d = trans_input.contiguous().view(-1, trans_size[-1])
+    soft_max_2d = F.softmax(input_2d)
+    soft_max_nd = soft_max_2d.view(*trans_size)
+    return soft_max_nd.transpose(axis, -1)
+
+
 class EncoderRNN(nn.Module):
     def __init__(self, gate, embeddings, hidden_size, gaussian_dim, num_gaussians, num_layers,
                  dropout, fixed_embeddings=False, bidirectional=False, indep_gaussians=True):
@@ -72,6 +85,8 @@ class EncoderRNN(nn.Module):
         # Feed-Forward: from rnn_dim to output_dim: mu + sigma
         true_hidden_size = hidden_size*2 if self.bidirectional else hidden_size
 
+        self.att = nn.Linear(true_hidden_size, true_hidden_size)  # attention layer
+
         self.fc_avg = nn.Linear(true_hidden_size, self.gaussian_dim * self.num_gaussians)
         self.fc_var = nn.Linear(true_hidden_size, self.gaussian_dim * self.num_gaussians)
 
@@ -91,6 +106,9 @@ class EncoderRNN(nn.Module):
         self.fc_avg.bias.data.fill_(0)
         self.fc_var.weight.data.uniform_(-0.1, 0.1)
         self.fc_var.bias.data.fill_(0)
+        # attention parameters
+        self.att.weight.data.uniform_(-0.1, 0.1)
+        self.att.bias.data.fill_(0)
 
     def _reparametrize(self, mus, log_vars):
         # build covariance matrix from list of variances, ie:
@@ -141,6 +159,11 @@ class EncoderRNN(nn.Module):
 
         # print('Output size:', output.size(), '- Hidden sizes:', [h.size() for h in hidden])
 
+        # TODO: compute attention energies
+        # energies = self.att(output.view(-1, output.size(2))).view(output.size())  # ~ (bs, seq_len, enc)
+        # energies = energies[:, :lengths, :]  # TODO: remove unused energies for short sequences
+        # alpha = softmax(energies, 1)  # apply softmax on dim=1
+
         # grab the encodding of the sentence, not the padded part!
         encoded = output[
                 range(output.size(0)),  # take each sentence
@@ -159,7 +182,7 @@ class EncoderRNN(nn.Module):
 # see: https://github.com/SherlockLiao/pytorch-beginner/tree/master/08-AutoEncoder
 # see: http://pytorch.org/docs/master/nn.html#torch.nn.ConvTranspose2d
 class DecoderCNN(nn.Module):
-    def __init__(self, input_size, hidden_sizes, output_size):
+    def __init__(self, input_size, hidden_sizes, output_size, dropout_rate):
         """
         :type input_size: int
         :type hidden_sizes: list of ints for each hidden layers
@@ -199,6 +222,8 @@ class DecoderCNN(nn.Module):
 
         self.init_weights()
 
+        self.dropout = nn.Dropout(p=dropout_rate)
+
     def init_weights(self):
         """
         initialize all weights for all decoder layers
@@ -212,6 +237,7 @@ class DecoderCNN(nn.Module):
         # for all hidden layers except the last one
         for layer in self.layers[:-1]:
             o = F.relu(layer(o))  # apply relu
+        o = self.dropout(o)
         o = self.layers[-1](o)    # last layer: no RELU
         return o
 
