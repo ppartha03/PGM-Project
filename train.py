@@ -328,9 +328,11 @@ def run(args):
     best_valid = 100000.
     patience = args.patience
 
+    train_losses = []  # keep track of training loss over time
+    valid_losses = []  # keep track of validation loss over time
     if classifier:
-        train_accuracies = []
-        valid_accuracies = []
+        train_accuracies = []  # pre-trained classifier accuracy to recognize generated images from training set
+        valid_accuracies = []  # pre-trained classifier accuracy to recognize generated images from validation set
 
     print("\nTraining model...")
     for epoch in range(args.epochs):
@@ -365,7 +367,7 @@ def run(args):
             # measure the accuracy of the classifier to recognize generated images
             if classifier:
                 labels = torch.LongTensor(labels)
-                classifier_out = classifier(outputs.view(-1, 1, 28, 28))
+                classifier_out = classifier(outputs.view(-1, 1, 28, 28))  # predict label of generated images
                 predictions = classifier_out.data.max(1, keepdim=True)[1]  # idx of max log prob
                 classifier_acc += predictions.cpu().eq(labels.view_as(predictions)).sum()
 
@@ -378,9 +380,10 @@ def run(args):
 
         epoch_recon_loss /= nb_train_batches
         epoch_kl_loss /= nb_train_batches
+        train_losses.append(epoch_recon_loss)  # save reconstruction loss for this epoch
         if classifier:
             classifier_acc /= len(train_loader.dataset)
-            train_accuracies.append(classifier_acc)
+            train_accuracies.append(classifier_acc)  # save classifier accuracy for this epoch
             print("Epoch: %d - kl loss: %g - recon loss: %g - clasifier acc: %g" % (
                 epoch+1, epoch_kl_loss, epoch_recon_loss, classifier_acc
             ))
@@ -413,14 +416,15 @@ def run(args):
             # measure the accuracy of the classifier to recognize generated images
             if classifier:
                 labels = torch.LongTensor(labels)
-                classifier_out = classifier(outputs.view(-1, 1, 28, 28))
+                classifier_out = classifier(outputs.view(-1, 1, 28, 28))  # predict label of generated images
                 predictions = classifier_out.data.max(1, keepdim=True)[1]  # idx of max log prob
                 classifier_acc += predictions.cpu().eq(labels.view_as(predictions)).sum()
 
         valid_recon_loss /= nb_valid_batches
+        valid_losses.append(valid_recon_loss)  # save reconstruction loss for this epoch
         if classifier:
             classifier_acc /= len(test_loader.dataset)
-            valid_accuracies.append(classifier_acc)
+            valid_accuracies.append(classifier_acc)  # save classifier accuracy for this epoch
             print("valid loss: %g - best loss: %g - classifier acc: %g" % (
                 valid_recon_loss, best_valid, classifier_acc
             ))
@@ -444,9 +448,25 @@ def run(args):
 
     # print(encoder.embed.weight)
 
+    print("\n------")
+
+    # Plot reconstruction loss
+    print("train losses:", train_losses)
+    print("valid losses:", valid_losses)
+    fig = plt.figure()
+    plt.plot(range(len(train_losses)), train_losses, 'b-', label='train')
+    plt.plot(range(len(valid_losses)), valid_losses, 'r-', label='valid')
+    plt.legend()
+    plt.title('VED reconstruction loss')
+    plt.xlabel('epoch')
+    plt.ylabel('loss')
+    plt.savefig("%s_%s_loss.png" % (args.save_prefix, model_id))
+    plt.close(fig)
+
+    # Plot classifier accuracy
     if classifier:
-        print(train_accuracies)
-        print(valid_accuracies)
+        print("train accuracies:", train_accuracies)
+        print("valid accuracies:", valid_accuracies)
         fig = plt.figure()
         plt.plot(range(len(train_accuracies)), train_accuracies, 'b-', label='train')
         plt.plot(range(len(valid_accuracies)), valid_accuracies, 'r-', label='valid')
@@ -454,7 +474,7 @@ def run(args):
         plt.title('pre-trained MNIST classifier accuracy to label generated images')
         plt.xlabel('epoch')
         plt.ylabel('classifier accurary')
-        plt.savefig("%s_%s_plot.png" % (args.save_prefix, model_id))
+        plt.savefig("%s_%s_acc.png" % (args.save_prefix, model_id))
         plt.close(fig)
 
 

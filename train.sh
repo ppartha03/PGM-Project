@@ -21,7 +21,7 @@ python3 train.py --gpu 0\
     --num_gaussians 10 \
     --gaussian_dim 30 \
     --decoder_layers 500 \
-    --dropout_rate_dec 0.5 \
+    --dropout_rate_dec 0.0 \
     --vocab_loc './data/mnist_vocab.pkl' \
     --use_mnist 't' \
     --distractors 100 \
