@@ -68,7 +68,7 @@ if torch.cuda.is_available():
 optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
 
 # Negative log likelihood
-loss = torch.nn.NLLLoss()
+loss = torch.nn.CrossEntropyLoss()
 
 start_time = time.time()
 best_valid = 0.0

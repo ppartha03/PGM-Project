@@ -1,0 +1,129 @@
+args: Namespace(batch_size=128, gpu=0, learning_rate=0.001, patience=10)
+
+Net (
+(conv1): Conv2d(1, 32, kernel_size=(5, 5), stride=(1, 1))
+(conv2): Conv2d(32, 64, kernel_size=(5, 5), stride=(1, 1))
+(fc1): Linear (1024 -> 512)
+(fc2): Linear (512 -> 10)
+)
+
+cuda available! moving model to gpu 0
+
+Training model...
+Epoch: 1 - loss: 0.167277 - accuracy: 0.947617
+Computing validation loss...
+valid loss: 0.0712049 - valid accuracy: 0.9775 - best accuracy: 0
+Saved new model.
+Epoch: 2 - loss: 0.0492496 - accuracy: 0.985067
+Computing validation loss...
+valid loss: 0.0395293 - valid accuracy: 0.9871 - best accuracy: 0.9775
+Saved new model.
+Epoch: 3 - loss: 0.03531 - accuracy: 0.989017
+Computing validation loss...
+valid loss: 0.0295044 - valid accuracy: 0.9907 - best accuracy: 0.9871
+Saved new model.
+Epoch: 4 - loss: 0.0280291 - accuracy: 0.99115
+Computing validation loss...
+valid loss: 0.0332112 - valid accuracy: 0.9891 - best accuracy: 0.9907
+No improvement. patience: 9
+Epoch: 5 - loss: 0.0226571 - accuracy: 0.992683
+Computing validation loss...
+valid loss: 0.0269973 - valid accuracy: 0.991 - best accuracy: 0.9907
+Saved new model.
+Epoch: 6 - loss: 0.0212427 - accuracy: 0.993033
+Computing validation loss...
+valid loss: 0.0354581 - valid accuracy: 0.9896 - best accuracy: 0.991
+No improvement. patience: 9
+Epoch: 7 - loss: 0.017818 - accuracy: 0.994267
+Computing validation loss...
+valid loss: 0.0312186 - valid accuracy: 0.9901 - best accuracy: 0.991
+No improvement. patience: 8
+Epoch: 8 - loss: 0.0144108 - accuracy: 0.995483
+Computing validation loss...
+valid loss: 0.0296201 - valid accuracy: 0.9916 - best accuracy: 0.991
+Saved new model.
+Epoch: 9 - loss: 0.0158009 - accuracy: 0.994933
+Computing validation loss...
+valid loss: 0.0246579 - valid accuracy: 0.9922 - best accuracy: 0.9916
+Saved new model.
+Epoch: 10 - loss: 0.0108845 - accuracy: 0.99645
+Computing validation loss...
+valid loss: 0.0293852 - valid accuracy: 0.9926 - best accuracy: 0.9922
+Saved new model.
+Epoch: 11 - loss: 0.0107744 - accuracy: 0.996567
+Computing validation loss...
+valid loss: 0.0391073 - valid accuracy: 0.9911 - best accuracy: 0.9926
+No improvement. patience: 9
+Epoch: 12 - loss: 0.0112122 - accuracy: 0.996467
+Computing validation loss...
+valid loss: 0.0334691 - valid accuracy: 0.9914 - best accuracy: 0.9926
+No improvement. patience: 8
+Epoch: 13 - loss: 0.00959253 - accuracy: 0.99705
+Computing validation loss...
+valid loss: 0.0361555 - valid accuracy: 0.9908 - best accuracy: 0.9926
+No improvement. patience: 7
+Epoch: 14 - loss: 0.00875685 - accuracy: 0.997067
+Computing validation loss...
+valid loss: 0.0326064 - valid accuracy: 0.9917 - best accuracy: 0.9926
+No improvement. patience: 6
+Epoch: 15 - loss: 0.00786938 - accuracy: 0.99755
+Computing validation loss...
+valid loss: 0.0333023 - valid accuracy: 0.991 - best accuracy: 0.9926
+No improvement. patience: 5
+Epoch: 16 - loss: 0.00849248 - accuracy: 0.997367
+Computing validation loss...
+valid loss: 0.0398732 - valid accuracy: 0.9903 - best accuracy: 0.9926
+No improvement. patience: 4
+Epoch: 17 - loss: 0.00711929 - accuracy: 0.99775
+Computing validation loss...
+valid loss: 0.0402874 - valid accuracy: 0.9901 - best accuracy: 0.9926
+No improvement. patience: 3
+Epoch: 18 - loss: 0.00814273 - accuracy: 0.997317
+Computing validation loss...
+valid loss: 0.0500589 - valid accuracy: 0.9903 - best accuracy: 0.9926
+No improvement. patience: 2
+Epoch: 19 - loss: 0.00770054 - accuracy: 0.9976
+Computing validation loss...
+valid loss: 0.0377971 - valid accuracy: 0.993 - best accuracy: 0.9926
+Saved new model.
+Epoch: 20 - loss: 0.00717587 - accuracy: 0.997583
+Computing validation loss...
+valid loss: 0.0359136 - valid accuracy: 0.993 - best accuracy: 0.993
+No improvement. patience: 9
+Epoch: 21 - loss: 0.00682062 - accuracy: 0.99795
+Computing validation loss...
+valid loss: 0.0343295 - valid accuracy: 0.9928 - best accuracy: 0.993
+No improvement. patience: 8
+Epoch: 22 - loss: 0.00399696 - accuracy: 0.9987
+Computing validation loss...
+valid loss: 0.0428814 - valid accuracy: 0.9914 - best accuracy: 0.993
+No improvement. patience: 7
+Epoch: 23 - loss: 0.00597329 - accuracy: 0.998517
+Computing validation loss...
+valid loss: 0.0409104 - valid accuracy: 0.9913 - best accuracy: 0.993
+No improvement. patience: 6
+Epoch: 24 - loss: 0.00441558 - accuracy: 0.99845
+Computing validation loss...
+valid loss: 0.0467235 - valid accuracy: 0.992 - best accuracy: 0.993
+No improvement. patience: 5
+Epoch: 25 - loss: 0.00653157 - accuracy: 0.997983
+Computing validation loss...
+valid loss: 0.0463315 - valid accuracy: 0.9912 - best accuracy: 0.993
+No improvement. patience: 4
+Epoch: 26 - loss: 0.00814771 - accuracy: 0.997533
+Computing validation loss...
+valid loss: 0.0480529 - valid accuracy: 0.9909 - best accuracy: 0.993
+No improvement. patience: 3
+Epoch: 27 - loss: 0.00471051 - accuracy: 0.99865
+Computing validation loss...
+valid loss: 0.0454841 - valid accuracy: 0.9913 - best accuracy: 0.993
+No improvement. patience: 2
+Epoch: 28 - loss: 0.00574984 - accuracy: 0.9984
+Computing validation loss...
+valid loss: 0.0525469 - valid accuracy: 0.9897 - best accuracy: 0.993
+No improvement. patience: 1
+Epoch: 29 - loss: 0.00414483 - accuracy: 0.99875
+Computing validation loss...
+valid loss: 0.0379306 - valid accuracy: 0.9926 - best accuracy: 0.993
+No improvement. patience: 0
+Finished training, time elapsed: 326.75 seconds
