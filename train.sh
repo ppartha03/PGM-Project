@@ -19,7 +19,7 @@ python3 train.py --gpu 0\
     --encoding_size 30 \
     --encoder_layers 1 \
     --num_gaussians 10 \
-    --gaussian_dim 30 \
+    --gaussian_dim 10 \
     --decoder_layers 500 \
     --dropout_rate_dec 0.0 \
     --vocab_loc './data/mnist_vocab.pkl' \

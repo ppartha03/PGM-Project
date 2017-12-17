@@ -1,1 +1,0 @@
-<start> zero plus six <end> <pad> <pad>

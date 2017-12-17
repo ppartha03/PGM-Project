@@ -42,6 +42,62 @@ def load_glove_vec(fname):
     return word_vecs, length
 
 
+def get_fixed_embeddings(vocab):
+    required_binary_length = int(np.ceil( np.log2(len(vocab)) ))
+
+    embeddings = np.zeros((len(vocab), required_binary_length))
+    free_embedding = 10
+
+    for word, idx in vocab.word2idx.items():
+        if word == 'zero':
+            embeddings[idx] = np.array(
+                    list(np.binary_repr(0, width=required_binary_length))
+            )
+        elif word == 'one':
+            embeddings[idx] = np.array(
+                    list(np.binary_repr(1, width=required_binary_length))
+            )
+        elif word == 'two':
+            embeddings[idx] = np.array(
+                    list(np.binary_repr(2, width=required_binary_length))
+            )
+        elif word == 'three':
+            embeddings[idx] = np.array(
+                    list(np.binary_repr(3, width=required_binary_length))
+            )
+        elif word == 'four':
+            embeddings[idx] = np.array(
+                    list(np.binary_repr(4, width=required_binary_length))
+            )
+        elif word == 'five':
+            embeddings[idx] = np.array(
+                    list(np.binary_repr(5, width=required_binary_length))
+            )
+        elif word == 'six':
+            embeddings[idx] = np.array(
+                    list(np.binary_repr(6, width=required_binary_length))
+            )
+        elif word == 'seven':
+            embeddings[idx] = np.array(
+                    list(np.binary_repr(7, width=required_binary_length))
+            )
+        elif word == 'eight':
+            embeddings[idx] = np.array(
+                    list(np.binary_repr(8, width=required_binary_length))
+            )
+        elif word == 'nine':
+            embeddings[idx] = np.array(
+                    list(np.binary_repr(9, width=required_binary_length))
+            )
+        else:
+            embeddings[idx] = np.array(
+                    list(np.binary_repr(free_embedding, width=required_binary_length))
+            )
+            free_embedding += 1
+
+    return embeddings
+
+
 def load_data(args):
     """
     Load vocabulary, data_loaders, word embeddings
@@ -119,6 +175,12 @@ def load_data(args):
         for word, idx in vocab.word2idx.items():
             if word in w2v:
                 embeddings[idx] = w2v[word]
+
+    elif args.fix_embeddings:
+        required_binary_length = int(np.ceil( np.log2(len(vocab)) ))
+        print("\nCreating fixed word embeddings of size %dx%d" % (len(vocab), required_binary_length))
+        embeddings = get_fixed_embeddings(vocab)
+
     else:
         print("\nCreating random word embeddings of size %dx%d" % (len(vocab), args.embedding_size))
         embeddings = np.random.uniform(-0.1, 0.1, size=(len(vocab), args.embedding_size))
@@ -163,15 +225,18 @@ def run(args):
 
     print("\nCreating encoder...")
     encoder = EncoderRNN(old_args.encoder_gate, embeddings, old_args.encoding_size, old_args.gaussian_dim,
-                         old_args.num_gaussians, old_args.encoder_layers, old_args.dropout_rate,
+                         old_args.num_gaussians, old_args.encoder_layers,
+                         old_args.dropout_rate_enc,
                          fixed_embeddings=old_args.fix_embeddings, bidirectional=old_args.bidirectional,
                          indep_gaussians=old_args.indep_gaussians)
     encoder.load_state_dict(torch.load("%s_enc.pt" % args.load_prefix))
     print(encoder)
+
     print("\nCreating decoder...")
     decoder = DecoderCNN(input_size=old_args.num_gaussians*old_args.gaussian_dim,
                          hidden_sizes=old_args.decoder_layers,
-                         output_size=train_loader.dataset[0][0].view(-1).size(0))
+                         output_size=train_loader.dataset[0][0].view(-1).size(0),
+                         dropout_rate=old_args.dropout_rate_dec)
     decoder.load_state_dict(torch.load("%s_dec.pt" % args.load_prefix))
     print(decoder)
 

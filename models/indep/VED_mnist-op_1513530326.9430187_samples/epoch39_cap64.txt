@@ -1,1 +1,0 @@
-<start> nine minus seven <end> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad> <pad>
