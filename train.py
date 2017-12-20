@@ -330,6 +330,7 @@ def run(args):
 
     train_losses = []  # keep track of training loss over time
     valid_losses = []  # keep track of validation loss over time
+    train_kls = []
     if classifier:
         train_accuracies = []  # pre-trained classifier accuracy to recognize generated images from training set
         valid_accuracies = []  # pre-trained classifier accuracy to recognize generated images from validation set
@@ -381,6 +382,7 @@ def run(args):
         epoch_recon_loss /= nb_train_batches
         epoch_kl_loss /= nb_train_batches
         train_losses.append(epoch_recon_loss)  # save reconstruction loss for this epoch
+        train_kls.append(epoch_kl_loss)
         if classifier:
             classifier_acc /= len(train_loader.dataset)
             train_accuracies.append(classifier_acc)  # save classifier accuracy for this epoch
@@ -461,6 +463,16 @@ def run(args):
     plt.xlabel('epoch')
     plt.ylabel('loss')
     plt.savefig("%s_%s_loss.png" % (args.save_prefix, model_id))
+    plt.close(fig)
+
+    print("train kl losses:", train_kls)
+    fig = plt.figure()
+    plt.plot(range(len(train_kls)), train_kls, 'b-', label='train')
+    plt.legend()
+    plt.title('VED KL loss')
+    plt.xlabel('epoch')
+    plt.ylabel('loss')
+    plt.savefig("%s_%s_loss.png" % (args.save_prefix + 'kl_', model_id))
     plt.close(fig)
 
     # Plot classifier accuracy
